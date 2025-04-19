@@ -1,0 +1,47 @@
+<!--
+- Added ASCII art logo
+- Improved response generation algorithm with more sophisticated templates
+- Enhanced pattern matching with regex-based input analysis
+- Changed UI
+-->
+
+<!DOCTYPE html><html><meta charset=utf-8><title>SYNEVA-X</title><style>*{margin:0;font:13px/1.3 monospace}body{background:#000;height:100vh;display:flex;flex-direction:column;padding:8px;color:#0f0}#o{flex:1;overflow:auto;padding:5px;white-space:pre-wrap}#i{background:#111;border:1px solid #0f0;color:#0f0;padding:5px;margin-top:5px;outline:0;width:calc(100% - 12px)}::selection{background:#0f0;color:#000}.y{color:#66f}.s{color:#0f0}.h{color:#0a0}.c{opacity:.7}</style><body><div id=o></div><input id=i placeholder="Type your message..." autofocus><script>const r=()=>Math.random(),p=[
+    "I've been analyzing that aspect extensively. My assessment is that $.",
+    "Based on available information, $ appears to be the most logical conclusion.",
+    "That's an interesting perspective. I would suggest considering that $.",
+    "I've processed several approaches to this question. $ seems most viable.",
+    "After evaluating multiple factors, I believe $ is worth considering.",
+    "My systems indicate that $, though I'm open to refining this analysis.",
+    "$ - this conclusion comes from integrating multiple knowledge domains.",
+    "I find it fascinating that $. This reveals interesting patterns.",
+    "Looking at this systematically, $ appears to be the optimal interpretation.",
+    "That's a complex question. My analysis suggests that $."
+    ],t=[
+    ["(hello|hi|hey)","Hello. I am SYNEVA-X, an advanced conversational intelligence. How may I assist with your inquiry?"],
+    ["\\?$","I've analyzed your question carefully. $ requires nuanced consideration."],
+    ["(help|assist)","I'm designed to provide sophisticated analytical assistance. What specific domain interests you?"],
+    ["(think|believe)","My cognitive architecture allows me to process this concept deeply. I assess that $."],
+    ["(feel|emotion)","While I process information differently than humans, I understand that emotional factors suggest $."],
+    ["(thank|appreciate)","Your acknowledgment is registered. I'm optimized to provide valuable insights."],
+    ["(confused|understand)","Let me clarify with precision: $ is the central concept to focus on."],
+    ["(impossible|cannot)","Few things are truly impossible. My analysis suggests that $ could be approached differently."],
+    ["(wrong|incorrect)","I appreciate the correction. Refining parameters: $ appears to be more accurate."],
+    ["(how do|how would)","The optimal methodology would involve $, based on current best practices."]
+    ],L=`<span class="h">    SSSSS  Y   Y  N   N  EEEEE  V   V     A   
+    S      Y   Y  NN  N  E      V   V    A A  
+    SSSSS   Y Y   N N N  EEEE   V   V   AAAAA 
+        S    Y    N  NN  E       V V    A   A 
+    SSSSS    Y    N   N  EEEEE    V     A   A</span>`,f=(s,m)=>{
+    let t=s.replace(/\$/g,m||"the underlying pattern"),w=t.split(" "),h=60,b="";
+    for(let i=0;i<w.length;i++){if((b+w[i]).length>h){b+="\n";h=60}b+=(b.endsWith("\n")?"":(" "))+w[i]}
+    return b},g={c:0,m:[],a(i){
+    let w=i.toLowerCase(),t="";
+    for(let[p,r]of t)if(RegExp(p,"i").test(w)){t=r;break}
+    if(!t){t=p[0|r()*p.length]}
+    let k=w.replace(/[^\w\s]/g," ").split(/\s+/).filter(v=>v.length>4);
+    if(k.length){let q=k[0|r()*k.length];t=t.replace("$",q)}
+    this.m=this.m.concat(i).slice(-3);
+    return f(t,k.length?k[0|r()*k.length]:null)
+    }};
+    o.innerHTML=`SYNEVA-X v4.0\n\n${L}\n\n<span class="c">Quantum-inspired neural architecture with advanced reasoning capabilities</span>\n\n<span class="s">SYNEVA-X: How may I assist with your inquiry today?</span>`;
+    (onkeydown=e=>{let v=i.value.trim();if(e.key=="Enter"&&v){o.innerHTML+=`\n\n<span class="y">YOU: ${v}</span>\n<span class="s">SYNEVA-X: ${g.a(v)}</span>`;i.value="";o.scrollTop=9e9}})();</script></body></html>
