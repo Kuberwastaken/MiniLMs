@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!-- 
+  v1 adds: DOCTYPE, meta tags, CSS styling with bubbles, proper DOM rendering,
+  topic memory, sentiment analysis, and transition patterns.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Syneva</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:0;padding:10px;height:100vh;display:flex;flex-direction:column}
+    #c{flex:1;overflow-y:auto;border:1px solid #ccc;border-radius:5px;padding:10px;margin-bottom:10px;background:#f9f9f9}
+    #i{padding:8px;border:1px solid #ccc;border-radius:5px}
+    .msg{margin:5px 0;padding:8px;border-radius:5px;max-width:80%}
+    .user{background:#e1f5fe;align-self:flex-end;margin-left:auto}
+    .bot{background:#f5f5f5;align-self:flex-start}
+    #c{display:flex;flex-direction:column}
+  </style>
+</head>
+<body>
+  <div id="c"></div>
+  <input id="i" placeholder="Chat with Syneva...">
+  <script>
+    // Enhanced Syneva with better language model capabilities
+    const Syneva = {
+      // Vocabulary with word frequencies
+      vocab: "you,I,is,are,do,what,how,why,like,think,good,bad,nice,more,tell,me,about,it,that,this,can,will,now,know,want,feel,yes,no,not,and,but,if,the,a,my,your,help,work,need,interesting,sorry,understand,maybe,sure,try,would,could,should,very,really".split(","),
+      
+      // Context tracking
+      memory: {
+        topics: [],           // Remember topics
+        lastSentiment: 0,     // Remember sentiment
+        lastWords: [],        // Last few words from user
+        questionCount: 0,     // Track conversational flow
+        turnCount: 0          // Count conversation turns
+      },
+      
+      // Transition probabilities (simplified Markov model)
+      transitions: {
+        // Question starters
+        "what": ["is", "do", "are", "about", "would"],
+        "how": ["do", "are", "would", "could", "is"],
+        "why": ["do", "is", "are", "would", "not"],
+        
+        // Common sentence starters
+        "I": ["think", "feel", "understand", "would", "like"],
+        "you": ["are", "can", "could", "should", "might"],
+        "it": ["is", "would", "could", "seems", "might"],
+        
+        // Common follow-ups
+        "like": ["to", "that", "it", "the", "your"],
+        "think": ["that", "about", "it", "the", "so"],
+        "feel": ["that", "like", "about", "good", "bad"],
+        
+        // Common transitions
+        "is": ["a", "the", "that", "not", "very"],
+        "are": ["you", "the", "very", "not", "a"],
+        "it": ["is", "would", "could", "seems", "might"],
+        
+        // Common follow-ups
+        "like": ["to", "that", "it", "the", "your"],
+        "think": ["that", "about", "it", "the", "so"],
+        "feel": ["that", "like", "about", "good", "bad"],
+        
+        // Common transitions
+        "is": ["a", "the", "that", "not", "very"],
+        "are": ["you", "the", "very", "not", "a"],
+        "do": ["you", "not", "the", "it", "that"]
+      },
+      
+      // Template patterns for responses
+      patterns: {
+        questions: [
+          ["what", "do", "you", "think", "about", "X"],
+          ["how", "do", "you", "feel", "about", "X"],
+          ["can", "you", "tell", "me", "more", "about", "X"],
+          ["why", "do", "you", "X"],
+          ["would", "you", "like", "to", "X"]
+        ],
+        statements: [
+          ["I", "think", "X", "is", "interesting"],
+          ["that", "sounds", "X"],
+          ["I", "understand", "what", "you", "mean", "about", "X"],
+          ["you", "seem", "to", "know", "a", "lot", "about", "X"],
+          ["it's", "X", "that", "you", "mentioned", "that"]
+        ],
+        acknowledgments: [
+          ["I", "see"],
+          ["interesting"],
+          ["tell", "me", "more"],
+          ["go", "on"],
+          ["that", "makes", "sense"]
+        ]
+      },
+      
+      // Sentiment analysis
+      sentiments: {
+        positive: ["good", "nice", "great", "like", "love", "happy", "yes", "sure", "thanks", "interesting"],
+        negative: ["bad", "not", "no", "never", "sorry", "sad", "difficult", "hard", "problem", "cannot"]
+      },
+      
+      // PRNG for deterministic "randomness"
+      seed: Date.now() % 10000,
+      random() {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+      },
+      
+      // Choose random element from array
+      choose(arr) {
+        return arr[Math.floor(this.random() * arr.length)];
+      },
+      
+      // Analyze text for sentiment, topics, etc.
+      analyze(text) {
+        const words = text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/);
+        
+        // Find words in our vocabulary
+        const known = words.filter(w => this.vocab.includes(w));
+        
+        // Calculate sentiment
+        let sentiment = 0;
+        words.forEach(word => {
+          if (this.sentiments.positive.includes(word)) sentiment += 0.2;
+          if (this.sentiments.negative.includes(word)) sentiment -= 0.2;
+        });
+        
+        // Extract potential topics (words not in our basic vocabulary)
+        const topics = words
+          .filter(w => w.length > 3 && !this.vocab.includes(w))
+          .filter(w => !/[0-9]/.test(w)); // Filter out numbers
+        
+        return {
+          known,
+          sentiment,
+          topics,
+          isQuestion: text.includes('?') || words.some(w => ['what','how','why','who','when','where'].includes(w))
+        };
+      },
+      
+      // Update memory with new information
+      updateMemory(analysis) {
+        // Store last words
+        this.memory.lastWords = analysis.known.slice(0, 3);
+        
+        // Update sentiment
+        this.memory.lastSentiment = analysis.sentiment;
+        
+        // Update topics if new ones found
+        if (analysis.topics.length > 0) {
+          const newTopic = this.choose(analysis.topics);
+          if (!this.memory.topics.includes(newTopic)) {
+            this.memory.topics.unshift(newTopic);
+            this.memory.topics = this.memory.topics.slice(0, 3); // Keep only 3
+          }
+        }
+        
+        // Update question/turn counts
+        if (analysis.isQuestion) {
+          this.memory.questionCount++;
+        } else {
+          this.memory.questionCount = Math.max(0, this.memory.questionCount - 1);
+        }
+        
+        this.memory.turnCount++;
+      },
+      
+      // Generate next word based on current word and context
+      nextWord(current, context) {
+        // If we have transitions for this word, use them
+        if (this.transitions[current]) {
+          // 80% chance to follow transitions
+          if (this.random() < 0.8) {
+            return this.choose(this.transitions[current]);
+          }
+        }
+        
+        // Otherwise, choose based on context
+        if (context.isQuestion) {
+          // Answer questions with statements about topics
+          return this.choose(["I", "think", "feel", "understand", "see"]);
+        }
+        
+        // Default to common words
+        return this.choose(this.vocab.slice(0, 15));
+      },
+      
+      // Generate a complete sentence
+      generateSentence(context) {
+        // Choose pattern based on context
+        let pattern;
+        
+        if (this.memory.questionCount > 2) {
+          // Too many questions, change topic
+          pattern = this.choose(this.patterns.statements);
+        } else if (context.isQuestion) {
+          // Answer question
+          pattern = this.choose(this.patterns.statements);
+        } else if (this.memory.turnCount % 3 === 0) {
+          // Ask question periodically
+          pattern = this.choose(this.patterns.questions);
+        } else {
+          // Default to statement
+          pattern = this.choose(this.patterns.statements);
+        }
+        
+        // Fill in the pattern
+        const sentence = [];
+        let hasX = false;
+        
+        for (const slot of pattern) {
+          if (slot === "X") {
+            hasX = true;
+            // Use topic if available
+            if (this.memory.topics.length > 0 && this.random() < 0.7) {
+              sentence.push(this.memory.topics[0]);
+            } else if (this.memory.lastWords.length > 0 && this.random() < 0.5) {
+              // Reuse word from user
+              sentence.push(this.choose(this.memory.lastWords));
+            } else {
+              // Generic word
+              sentence.push(this.choose(["this", "that", "it", "things"]));
+            }
+          } else {
+            sentence.push(slot);
+          }
+        }
+        
+        // Ensure we reference topics
+        if (!hasX && this.memory.topics.length > 0 && this.random() < 0.5) {
+          if (sentence.length > 3) {
+            sentence.push("about");
+            sentence.push(this.memory.topics[0]);
+          }
+        }
+        
+        return sentence.join(" ");
+      },
+      
+      // Generate a complete response (1-3 sentences)
+      generateResponse(input) {
+        // Analyze input
+        const analysis = this.analyze(input);
+        
+        // Update memory
+        this.updateMemory(analysis);
+        
+        // Determine number of sentences (1-3)
+        const sentenceCount = 1 + Math.floor(this.random() * 2);
+        
+        // Generate sentences
+        const sentences = [];
+        for (let i = 0; i < sentenceCount; i++) {
+          sentences.push(this.generateSentence(analysis));
+        }
+        
+        // Capitalize first letter
+        let response = sentences.join(". ");
+        response = response.charAt(0).toUpperCase() + response.slice(1);
+        
+        // Add final punctuation if missing
+        if (!".!?".includes(response.slice(-1))) {
+          // End with question if appropriate
+          if (this.memory.turnCount % 3 === 2 || analysis.isQuestion) {
+            response += "?";
+          } else {
+            response += ".";
+          }
+        }
+        
+        return response;
+      }
+    };
+
+    // UI handling
+    const c = document.getElementById("c");
+    const i = document.getElementById("i");
+    
+    function addMessage(text, type) {
+      const div = document.createElement("div");
+      div.className = `msg ${type}`;
+      div.textContent = text;
+      c.appendChild(div);
+      c.scrollTop = c.scrollHeight;
+    }
+    
+    i.addEventListener("keydown", e => {
+      if (e.key === "Enter" && i.value.trim()) {
+        const userMsg = i.value.trim();
+        addMessage(userMsg, "user");
+        
+        // Generate response
+        const botReply = Syneva.generateResponse(userMsg);
+        
+        // Add slight delay to feel more natural
+        setTimeout(() => {
+          addMessage(botReply, "bot");
+        }, 300);
+        
+        i.value = "";
+      }
+    });
+    
+    // Initial greeting
+    addMessage("Hello! I'm Syneva, a tiny AI assistant. What would you like to talk about?", "bot");
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!-- 
+  v2 vs v1 changes:
+  way smaller footprint.
+  Simplified CSS, optimized AI model, better memory usage.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Syneva</title>
+  <style>
+  *{box-sizing:border-box}body{font:15px/1.4 system-ui;margin:0;height:100vh;display:flex;flex-direction:column;padding:10px}#c{flex:1;overflow:auto;border:1px solid #ddd;border-radius:4px;padding:8px;margin-bottom:8px;background:#f8f8f8}#i{padding:8px;border:1px solid #ddd;border-radius:4px}.u{background:#e1f5fe;margin:4px 0 4px auto;padding:6px 10px;border-radius:15px;max-width:80%;text-align:right}.b{background:#f1f1f1;margin:4px auto 4px 0;padding:6px 10px;border-radius:15px;max-width:80%}
+  </style>
+</head>
+<body>
+  <div id="c"></div>
+  <input id="i" placeholder="Chat with Syneva" autofocus>
+  <script>
+  // Ultra-compact Syneva
+  const S={
+    // Words (common words stored as indices)
+    w:"I,you,me,is,are,do,what,how,why,like,think,feel,know,tell,yes,no,not,can,will,would,good,bad,nice,more,about,that,this,it,my,your,help,here,have,want,need,make,see,try,work,time,say,really,very,just,now,right,sure,maybe,sorry,thanks".split(","),
+    
+    // Patterns (template sentences using word indices)
+    p:[
+      [1,4,20],              // "you are good"
+      [0,11,25],             // "I feel that"
+      [6,5,1,9],             // "what do you like"
+      [7,5,1,11],            // "how do you feel"
+      [8,5,1,10,25],         // "why do you think that"
+      [0,9,1],               // "I like you"
+      [0,10,1,4,20],         // "I think you are good"
+      [13,2,24,27],          // "tell me about it"
+      [5,1,29,9,27],         // "do your like it"
+      [0,12,6,1,9],          // "I know what you like"
+      [17,1,13,2,23],        // "can you tell me more"
+      [0,19,9,26],           // "I would like this"
+      [25,4,22],             // "that is nice"
+      [1,33,30],             // "you want help"
+      [0,19,30,1]            // "I would help you"
+    ],
+    
+    // Topics (store extracted user topics)
+    t:[],
+    
+    // Last sentiment and keywords
+    s:0,
+    k:[],
+    
+    // PRNG
+    r(){return Math.random()},
+    
+    // Process input
+    a(i){
+      // Convert to lowercase and extract words
+      let w=i.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/);
+      
+      // Extract sentiment 
+      let s=0;
+      // Positive words
+      if(/good|nice|great|like|love|happy|yes|sure|thanks|cool/.test(i)) s+=0.3;
+      // Negative words
+      if(/bad|not|no|never|sorry|sad|problem|hard|difficult|can't/.test(i)) s-=0.3;
+      
+      // Extract keywords (words in our vocabulary)
+      let k=w.filter(x=>this.w.indexOf(x)>=0);
+      
+      // Extract topics (words not in vocabulary, length > 3)
+      let t=w.filter(x=>x.length>3&&this.w.indexOf(x)<0);
+      
+      // Update state
+      this.s=s;
+      this.k=k;
+      if(t.length>0){
+        const nt=t[Math.floor(this.r()*t.length)];
+        if(!this.t.includes(nt)) this.t.unshift(nt);
+        this.t=this.t.slice(0,2);
+      }
+      
+      return {
+        q:i.includes('?') || /what|how|why|who|when|where/.test(i.toLowerCase()),
+        s:s
+      };
+    },
+    
+    // Generate response
+    g(i){
+      // Analyze input
+      let c=this.a(i);
+      
+      // Pick a response pattern
+      let pat;
+      if(c.q){
+        // Questions get responses from first half of patterns
+        pat=this.p[Math.floor(this.r()*(this.p.length/2))];
+      }else{
+        // Statements get responses from second half of patterns
+        pat=this.p[Math.floor(this.r()*(this.p.length/2))+Math.floor(this.p.length/2)];
+      }
+      
+      // Generate response
+      let r=[];
+      for(let j=0;j<pat.length;j++){
+        // 30% chance to use a user keyword if available
+        if(this.k.length>0 && this.r()<0.3){
+          r.push(this.k[Math.floor(this.r()*this.k.length)]);
+        }else{
+          r.push(this.w[pat[j]]);
+        }
+      }
+      
+      // Add topic if available (30% chance)
+      if(this.t.length>0 && this.r()<0.3){
+        r.push(this.t[0]);
+      }
+      
+      // Return formatted response
+      let resp=r.join(' ');
+      resp=resp.charAt(0).toUpperCase()+resp.slice(1);
+      
+      // Add punctuation
+      if(c.q && this.r()<0.7){
+        resp+='?';
+      }else if(this.r()<0.8){
+        resp+='.';
+      }else{
+        resp+='!';
+      }
+      
+      return resp;
+    }
+  };
+
+  // UI handling
+  const c=document.getElementById("c");
+  const i=document.getElementById("i");
+  
+  function add(t,cls){
+    const d=document.createElement("div");
+    d.className=cls;
+    d.textContent=t;
+    c.appendChild(d);
+    c.scrollTop=c.scrollHeight;
+  }
+  
+  i.onkeydown=e=>{
+    if(e.key==="Enter" && i.value.trim()){
+      add(i.value,"u");
+      setTimeout(()=>add(S.g(i.value),"b"),100+Math.floor(Math.random()*400));
+      i.value="";
+    }
+  };
+  
+  // Initial greeting
+  add("Hi! I'm Syneva. What would you like to talk about?","b");
+  </script>
+</body>
+</html>
