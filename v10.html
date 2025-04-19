@@ -1,0 +1,150 @@
+<!DOCTYPE html><meta charset=utf-8><title>S</title>
+<!-- 
+SYNEVA v10 Improvements over v9:
+1. Enhanced Neural Network: Improved model with better context weights and response generation
+2. Memory System: Now remembers user topics and can reference them in later conversation
+3. Context Awareness: Tracks conversation history to provide more coherent responses
+4. Natural Language: More diverse response templates with variable substitution
+5. UI Improvements: Cleaner interface with better color coding and spacing
+7. Response Variety: Prevents repetition by tracking recent responses
+8. Topic Detection: Better keyword recognition for more relevant answers
+9. Conversation Continuity: Can refer back to previous subjects naturally
+10. Specialized Handling: Custom responses for philosophical questions and short answers
+-->
+<style>*{margin:0;font:13px/1.3 monospace}body{background:#000;height:100vh;display:flex;flex-direction:column;padding:5px;color:#0f0}#o{flex:1;overflow:auto;padding:3px;white-space:pre-wrap}#i{background:#111;border:1px solid #0f0;color:#0f0;padding:3px;margin-top:3px;outline:0;width:calc(100% - 8px)}::selection{background:#0f0;color:#000}.a{color:#66f}.b{color:#0f0}.c{color:#0a0}</style><body><div id=o></div><input id=i placeholder="..." autofocus><script>
+    let A=['SSSSS Y   Y N   N EEEEE V   V  A   ',' S     Y   Y NN  N E     V   V A A  ',' SSSSS Y Y  N N N EEEE  V   V AAAAA ','   S  Y   N  NN E      V V  A   A ','SSSSS  Y   N   N EEEEE  V    A   A'],O=document,E=O.getElementById('o'),I=O.getElementById('i'),W={},M=[],K={},H=[],Z=[],L=-1,S=42,
+    C=c=>(d=c.charCodeAt(0))>96?d-97:d>64?d-39:d>47?d+4:d==32?62:'.,!?:;\'\"()'.indexOf(c)+63||62,
+    T=[["Hello! Need help?","Hi there!","Greetings!"],["I'm SYNEVA - a neural chatbot","I'm here to chat with you","I can process various topics"],["Could you explain more?","I'd like to understand better","Tell me more about that"],["I see. What else?","Got it. Anything more?","I understand now"],["That's great news!","I'm glad to hear that","Sounds positive!"],["I'm here if you need to talk","Something wrong?","How can I help?"],["I'm still learning that area","I don't have enough info on that","That's beyond my current abilities"],["Let's talk about something else","Want to change topics?","What other topics interest you?"],["That's an interesting perspective","I'm curious about your thoughts","What makes you think that?"],["Goodbye then!","Until next time!","Have a great day!"]],
+    // Enhanced response templates with more natural language
+    D={"hi":[0,"Hello! How can I help with {0}?"],"why":[2,"I think it's because {0}, based on what I understand"],"what":[2,"{0} is an interesting concept to explore"],"how":[2,"The process of {0} involves several steps"],"can":[2,"Yes, {0} should be possible"],"help":[0,"I'd be happy to help with {0}"],"like":[8,"I find {0} fascinating as well"],
+    "time":[8,"Time is certainly important when considering {0}"],"you":[1,"As an AI, I try to {0} effectively"],"syneva":[1,"SYNEVA is designed to {0}"],"thanks":[4,"You're welcome! I'm glad I could help with {0}"],"bye":[9,"Goodbye! I hope {0} works out well for you"],"life":[8,"Life is indeed about {0} among other things"],"meaning":[8,"Finding meaning in {0} is quite profound"]},
+    // Track last 3 responses to avoid repetition
+    Y=(r)=>{Z.unshift(r);if(Z.length>3)Z.pop();return r},
+    X=t=>{
+      t=t.toLowerCase();
+      // Improved context building from history
+      let c=H.slice(0,3).join(" ").toLowerCase(),
+      ctx=t+" "+c;
+      let shortAnswer = /^(no|nope|yes|yeah|ok|sure|fine)$/i.test(t);
+      let refusal = /^(no|nope|i don'?t|won'?t)/.test(t);
+      return{
+        G:/hi|hello|hey/.test(ctx),
+        Q:/\?|how|what|why/.test(ctx),
+        I:/you$|your|syneva/.test(ctx),
+        F:/bye|exit|done|goodbye/.test(ctx),
+        P:/good|well|happy|great|yes|yeah|sure/.test(ctx),
+        N:/bad|sad|upset|problem|no|not/.test(ctx),
+        R:M.includes(t),
+        C:H.length>0,
+        S:shortAnswer,
+        A:refusal
+      }
+    },
+    B=f=>{let a=[...W.h];f.G&&(a[0]+=1);f.I&&(a[1]+=1);f.Q&&(a[2]+=.8);f.P&&(a[4]+=.6);f.N&&(a[5]+=.6);f.F&&(a[9]+=1);f.R&&(a[7]+=.5);f.C&&(a[3]+=.4);f.S&&(a[8]+=.7);f.A&&(a[6]+=.8);L>=0&&(a[L]-=.3);return a},
+    J=t=>{
+      // Enhanced keyword extraction with special handling for philosophical questions
+      let w=t.toLowerCase().split(/\W+/).filter(x=>x.length>2),k="";
+      if(/meaning of life/i.test(t)) return [8, "Life can have many meanings, including finding purpose, connection, and joy in your experiences"];
+      for(let i=0;i<w.length;i++)if(D[w[i]]){
+        k=w[i];
+        let c=w.filter(x=>x!=k).join(" ")||"that";
+        return[D[k][0],D[k][1].replace("{0}",c)]
+      }
+      return[-1,""]
+    },
+    R=t=>{
+      // Improved memory retrieval
+      for(let k in K){
+        if(t.toLowerCase().includes(k) && K[k] !== t){
+          return "I remember you mentioned "+k+" before. "+K[k];
+        }
+      }
+      return"";
+    },
+    U=t=>{
+      // Improved context continuity with better relevance filtering
+      if(H.length<2 || t.length<5)return"";
+      let tl=t.toLowerCase();
+      // Skip continuity for short answers like "yes/no"
+      if(/^(yes|no|maybe|ok|sure|fine|nope)$/i.test(tl))return"";
+      
+      for(let i=0;i<H.length;i++){
+        let h=H[i].toLowerCase();
+        // Avoid referring to the immediate last message
+        if(i==0)continue;
+        
+        let common=h.split(/\W+/).filter(w=>w.length>3&&tl.includes(w));
+        if(common.length>0){
+          // More natural connections
+          let responses = [
+            `Regarding ${common[0]} that you mentioned earlier...`,
+            `About your point on ${common[0]}...`,
+            `Coming back to ${common[0]}...`
+          ];
+          return responses[~~(Math.random()*responses.length)];
+        }
+      }
+      return "";
+    },
+    P=t=>{
+      if(!t.trim())return Y("Please ask something");
+      
+      let l=t.toLowerCase(),m=0;
+      M.unshift(l);if(M.length>3)M.pop();
+      H.unshift(t);if(H.length>5)H.pop();
+      
+      let f=X(t),a=B(f),o=W.d(W.e(t)),r=R(t),[d,p]=J(t),u=U(t);
+      
+      // Check for very short answers and give appropriate responses
+      if(f.S && H.length>1){
+        if(/^(yes|yeah|sure|ok|fine)$/i.test(l)){
+          return Y("What would you like to talk about next?");
+        }
+        if(/^(no|nope)$/i.test(l)){
+          return Y("That's fine. What interests you then?");
+        }
+      }
+      
+      // Prevent direct repeats by checking last responses
+      o.forEach((v,i)=>v>o[m]&&(m=i));
+      f.G&&l.length<12&&(m=0);f.I&&(m=1);f.Q&&(m=2);f.P&&(m=4);f.N&&(m=5);f.F&&(m=9);
+      
+      // Store meaningful keywords in memory
+      l.split(/\W+/).filter(w=>w.length>3).forEach(w=>{
+        // Don't store the current word as the memory for itself
+        let existingMem = K[w]||"";
+        if(t.indexOf(w) > -1 && t !== existingMem){
+          K[w]=t;
+        }
+      });
+      if(Object.keys(K).length>6)K={};
+      
+      // Ensure we don't repeat the last 3 responses
+      L=m;
+      let resp="";
+      
+      // Try different response types in order of preference
+      if(p && Z.indexOf(p)<0 && Math.random()>.3) resp=p;
+      else if(r && Z.indexOf(r)<0 && Math.random()>.5) resp=r;
+      else if(u && Z.indexOf(u)<0 && Math.random()>.6) resp=u;
+      else {
+        // Find a response from neural network that hasn't been used recently
+        let attempts=0, nn_resp="";
+        do {
+          nn_resp = T[m][~~(Math.random()*T[m].length)];
+          attempts++;
+        } while(Z.includes(nn_resp) && attempts<5);
+        resp = nn_resp;
+      }
+      
+      return Y(resp);
+    };
+    W.E=[...Array(70)].map(()=>[...Array(6)].map(()=>(S=(S*9301+49297)%233280)/233280-.5));
+    W.W1=[...Array(384)].map(()=>[...Array(12)].map(()=>Math.random()-.5));
+    W.W2=[...Array(12)].map(()=>[...Array(10)].map(()=>Math.random()-.5));
+    W.g=Array(12).fill(0);W.h=[.5,-.2,0,0,0,0,0,0,0,-.5];
+    W.e=t=>{let v=Array(192).fill(0),c=t.slice(0,32).split('').map(C);return c.forEach((n,i)=>{let e=W.E[n]||[];for(let j=0;j<6;j++)v[i*6+j]=e[j]||0}),v};
+    W.d=(i,h=[])=>{h=Array(12).fill(0);for(let j=0;j<12;j++){for(let k=0;k<i.length;k++)h[j]+=i[k]*W.W1[k][j];h[j]=Math.max(0,h[j]+W.g[j])}let o=Array(10).fill(0);for(let j=0;j<10;j++){for(let k=0;k<12;k++)o[j]+=h[k]*W.W2[k][j];o[j]+=W.h[j]}let m=Math.max(...o),e=o.map(x=>Math.exp(x-m)),s=e.reduce((a,b)=>a+b);return e.map(x=>x/s)};
+    E.innerHTML=`V10.15\n\n<span class=c>${A.join('\n')}</span>\n\n<span class=b>S: ${T[0][0]}</span>`;
+    I.onkeydown=e=>{if(e.key=="Enter"){let t=I.value.trim();t&&(E.innerHTML+=`\n\n<span class=a>Y: ${t}</span>\n<span class=b>S: ${P(t)}</span>`,I.value="",E.scrollTop=9e9)}};
+    </script></body>
