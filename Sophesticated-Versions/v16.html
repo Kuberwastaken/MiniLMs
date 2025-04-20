@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SYNEVA</title>
+  <style>
+    body{background:#000;color:#0f0;font-family:monospace;margin:0;padding:10px;display:flex;flex-direction:column;height:100vh;box-sizing:border-box}
+    #c{flex-grow:1;overflow-y:auto;margin-bottom:10px;white-space:pre-wrap}
+    #i{display:flex}
+    #u{flex-grow:1;background:#000;color:#0f0;border:1px solid #0f0;padding:5px;font-family:monospace}
+    .u{color:#7f7}
+    .b{color:#0f0}
+    .k{animation:b 1s infinite}
+    @keyframes b{0%,100%{opacity:1}50%{opacity:0}}
+  </style>
+</head>
+<body>
+  <div id="c"><div class="b">SYNEVA v0.16 initialized. How can I assist you today?</div></div>
+  <div id="i"><span>></span>&nbsp;<input id="u" type="text" autofocus></div>
+  <script>
+    // Ultra-compressed markov-transformer hybrid
+    class S{
+      constructor(){
+        this.m=JSON.parse(localStorage.getItem('s_m'))||{};
+        this.c=[];
+        this.p={
+          // Pre-trained patterns (compressed)
+          p:{
+            "hello":[["Hi there!","Hello! How can I help?","Greetings! What can I do for you?"]],
+            "hi":[["Hello!","Hi there!","Greetings!"]],
+            "how are":[["I'm operating normally. How are you?","Running well, thanks for asking!","All systems functional. How can I assist?"]],
+            "what":[["That's an interesting question.","Let me think about that.","I'll do my best to answer."]],
+            "your name":[["I'm Syneva, a micro-AI assistant.","My name is Syneva, a tiny AI.","I'm called Syneva, an ultra-compact AI."]],
+            "thank":[["You're welcome!","Happy to help!","Anytime!"]],
+            "help":[["I'll try my best to assist you.","I'm here to help. What do you need?","How can I be of service?"]],
+            "can you":[["I'll certainly try, though I'm quite compact.","Within my capabilities, yes.","Let me attempt that for you."]],
+            "weather":[["I can't check weather data, but I can chat about it.","I don't have access to current weather info.","As a tiny AI, I can't access weather services."]],
+            "bye":[["Goodbye!","See you later!","Until next time!"]],
+            "?":[["Good question. Let me think.","Interesting query.","I'll try to answer that well."]]
+          },
+          // Compressed fallbacks
+          f:["I'm processing that input.","Interesting. Tell me more?","I'm not sure I understand.","Could you rephrase that?","Let me think about that."]
+        };
+      }
+      
+      learn(i,o){
+        // Simple markov learning
+        let k=i.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).slice(-2).join(' ');
+        if(!k) return;
+        this.m[k]=this.m[k]||[];
+        this.m[k].push(o);
+        if(this.m[k].length>5) this.m[k].shift();
+        localStorage.setItem('s_m',JSON.stringify(this.m));
+      }
+      
+      async gen(t){
+        // Add to context
+        this.c.push(t);
+        if(this.c.length>3) this.c.shift();
+        
+        // Look for pattern matches
+        let r,l=t.toLowerCase();
+        for(let k in this.p.p){
+          if(l.includes(k)){
+            let opts=this.p.p[k][0];
+            r=opts[Math.floor(Math.random()*opts.length)];
+            break;
+          }
+        }
+        
+        // Try markov generation if no pattern match
+        if(!r){
+          let k=l.replace(/[^\w\s]/g,'').split(/\s+/).slice(-2).join(' ');
+          if(this.m[k] && Math.random()<0.8){
+            r=this.m[k][Math.floor(Math.random()*this.m[k].length)];
+          }
+        }
+        
+        // Fallback
+        if(!r){
+          r=this.p.f[Math.floor(Math.random()*this.p.f.length)];
+        }
+        
+        // Learn from this interaction
+        this.learn(t,r);
+        
+        return r;
+      }
+    }
+
+    const s=new S();
+    const c=document.getElementById('c');
+    const u=document.getElementById('u');
+
+    // Typing effect
+    function t(x,e){
+      return new Promise(r=>{
+        let i=0,rs=document.createElement('span'),cs=document.createElement('span');
+        cs.className='k';
+        cs.textContent='█';
+        e.appendChild(rs);
+        e.appendChild(cs);
+        const y=setInterval(()=>{
+          if(i<x.length){
+            rs.textContent+=x[i++];
+            c.scrollTop=c.scrollHeight;
+          }else{
+            clearInterval(y);
+            e.removeChild(cs);
+            r();
+          }
+        },20);
+      });
+    }
+
+    u.addEventListener('keydown',async function(e){
+      if(e.key==='Enter'){
+        const m=u.value.trim();
+        if(!m) return;
+        const um=document.createElement('div');
+        um.className='u';
+        um.textContent=`> ${m}`;
+        c.appendChild(um);
+        u.value='';
+        u.disabled=true;
+        const bm=document.createElement('div');
+        bm.className='b';
+        c.appendChild(bm);
+        try{
+          const r=await s.gen(m);
+          await t(r,bm);
+        }catch(e){
+          await t("Processing error. Recovering...",bm);
+        }
+        u.disabled=false;
+        u.focus();
+        c.scrollTop=c.scrollHeight;
+      }
+    });
+
+    window.onload=function(){u.focus()};
+  </script>
+</body>
+</html>

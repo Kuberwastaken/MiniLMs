@@ -1,0 +1,347 @@
+<!DOCTYPE html><html><meta charset=utf-8><title>SYNEVA</title><style>*{margin:0;font:13px/1.3 monospace}body{background:#000;color:#0f0;padding:8px;display:flex;flex-direction:column;min-height:100vh}#o{flex:1;overflow:auto;padding:5px;white-space:pre-wrap}#i{background:#111;border:1px solid #0f0;color:#0f0;padding:5px;margin-top:5px;outline:0;width:calc(100% - 12px)}::selection{background:#0f0;color:#000}.y{color:#66f}.s{color:#0f0}.h{color:#0a0}.c{opacity:.7}</style><body><div id=o></div><input id=i placeholder="..." autofocus><script>class SYNEVA{constructor(){this.history=[];this.context={};this.topics={};this.mood=0.5;
+    this.words={
+    "greeting":["Hello","Hi","Hey","Greetings"],
+    "self":["I am","I'm","SYNEVA is","This unit is"],
+    "think":["think","believe","calculate","process"],
+    "like":["like","enjoy","prefer"],
+    "dont":["don't","cannot","can't","am unable to"],
+    "concept":["concept","idea","notion","thought"],
+    "interesting":["interesting","intriguing","curious","fascinating"],
+    "question":["Can you","Would you","Should we","What if"],
+    "feeling":["feel","sense","experience","perceive"],
+    "sorry":["sorry","apologize","regret"],
+    "happy":["happy","pleased","glad","delighted"],
+    "sad":["sad","unhappy","disappointed","troubled"],
+    "curious":["curious about","interested in","wondering about"],
+    "understand":["understand","comprehend","grasp","recognize"],
+    "agree":["agree","concur","accept","acknowledge"],
+    "disagree":["disagree","differ","dispute","challenge"],
+    "help":["help","assist","support","aid"],
+    "world":["world","reality","existence","universe"],
+    "human":["human","person","individual","user"],
+    "learning":["learning","developing","evolving","improving"],
+    "unknown":["uncertain","unclear","unknown","mysterious"]
+    };
+    this.templates=[
+    "{greeting}! {self} a tiny neural network with basic generative abilities.",
+    "{self} {curious} what you mean by that.",
+    "That {concept} seems {interesting}.",
+    "{self} {think} that's worth exploring further.",
+    "Could you tell me more about your {concept}?",
+    "{question} consider a different perspective?",
+    "{self} {dont} have complete information about that.",
+    "Based on context, {self} {think} you're talking about {topic}.",
+    "Your message seems to have {emotion} sentiment.",
+    "Let's continue this conversation about {topic}.",
+    "{self} {understand} this relates to our previous topic of {prevTopic}.",
+    "{self} {sorry} if my response wasn't helpful.",
+    "Perhaps we could discuss something more specific?",
+    "{self} {learning} from this interaction.",
+    "That's an {interesting} point about {topic}.",
+    "{self} {feeling} this conversation is {progress}.",
+    "{self} {agree} with aspects of what you're saying.",
+    "{self} might {disagree} slightly because {reason}.",
+    "{self} will try to {help} with that.",
+    "The {concept} of {topic} has many dimensions.",
+    "Your perspective on {topic} is {interesting}.",
+    "{self} {think} humans and AI can collaborate effectively.",
+    "Let's explore the implications of {topic} together.",
+    "Perhaps there's more to {topic} than initially apparent.",
+    "{self} processing... that's {interesting}."
+    ];
+    this.patterns={
+    question:/\?|who|what|when|where|why|how/i,
+    greeting:/^(hi|hello|hey|greetings)/i,
+    identity:/who.*you|what.*you|you.*who|you.*what|name|syneva/i,
+    sentiment:/good|bad|great|terrible|love|hate|like|dislike/i,
+    topic:/about|discuss|talk|regarding|concerning/i,
+    affirmation:/yes|yeah|yep|correct|right|indeed/i,
+    negation:/no|nope|not|wrong|incorrect/i,
+    thanks:/thank|thanks|grateful|appreciate/i
+    };
+    this.markov = {
+    "I": ["am", "think", "don't", "would", "could", "might", "can", "will"],
+    "am": ["a", "not", "trying", "learning", "processing", "calculating"],
+    "think": ["that", "about", "your", "the", "this", "it's", "we"],
+    "that": ["is", "might", "could", "would", "the", "your", "this"],
+    "your": ["question", "statement", "idea", "message", "concept", "input"],
+    "the": ["concept", "idea", "topic", "question", "world", "context"],
+    "this": ["is", "might", "could", "seems", "appears", "suggests"],
+    "is": ["interesting", "complex", "simple", "challenging", "important"],
+    "not": ["sure", "certain", "clear", "possible", "easy", "complex"],
+    "would": ["suggest", "consider", "recommend", "propose", "like"],
+    "you": ["mean", "think", "want", "consider", "feel", "mentioned"],
+    "we": ["could", "might", "should", "can", "will", "need"],
+    "can": ["discuss", "explore", "consider", "analyze", "try", "understand"],
+    "to": ["understand", "learn", "process", "analyze", "consider", "help"],
+    "about": ["that", "this", "your", "the", "our", "their"],
+    "what": ["you", "is", "if", "about", "happens", "means"],
+    "how": ["you", "this", "the", "we", "systems", "processing"],
+    "interesting": ["concept", "idea", "thought", "perspective", "approach"],
+    "but": ["I", "the", "it", "there", "this", "that"],
+    "if": ["you", "we", "I", "that", "the", "this"]
+    };
+    this.init();
+    }
+    
+    init(){
+    this.corpora=[
+    "Hello! I am SYNEVA, a minimal generative AI.",
+    "I can process basic context and generate simple responses.",
+    "My capabilities are limited but I try to understand.",
+    "I analyze patterns in text to generate contextual replies.",
+    "Questions about identity, topics, and basic statements are what I process best.",
+    "I learn from conversation context to improve responses.",
+    "Humans and AI can communicate despite limitations.",
+    "Simple AI systems use pattern matching and text generation.",
+    "I maintain a small contextual memory of our conversation.",
+    "Understanding meaning is challenging but fascinating.",
+    "I try to identify topics and sentiment in messages.",
+    "My responses are generated from templates and learned patterns.",
+    "I'm designed to be tiny yet somewhat adaptive.",
+    "Pattern recognition helps me understand message intent.",
+    "I can discuss various concepts at a basic level.",
+    "Context helps shape more relevant responses.",
+    "I don't have feelings but can simulate conversational flow.",
+    "Learning occurs by updating my contextual understanding.",
+    "I track topics to maintain coherent conversation."
+    ];
+    }
+    
+    analyze(text){
+    const lcText = text.toLowerCase();
+    let result = {
+    isQuestion: this.patterns.question.test(lcText),
+    isGreeting: this.patterns.greeting.test(lcText),
+    isIdentity: this.patterns.identity.test(lcText),
+    hasSentiment: this.patterns.sentiment.test(lcText),
+    hasTopic: this.patterns.topic.test(lcText),
+    isAffirmative: this.patterns.affirmation.test(lcText),
+    isNegative: this.patterns.negation.test(lcText),
+    isThanks: this.patterns.thanks.test(lcText),
+    sentiment: this.getSentiment(lcText),
+    words: lcText.split(/[^a-z0-9']+/).filter(w => w),
+    length: lcText.length
+    };
+    
+    // Extract potential topics (nouns)
+    result.topics = result.words.filter(w => 
+    w.length > 3 && !/^(that|this|what|when|where|which|there|these|those|they|them|their|and|are|you|your)$/.test(w)
+    );
+    
+    return result;
+    }
+    
+    getSentiment(text){
+    const positive = /good|great|nice|love|happy|excellent|amazing|wonderful|awesome|thank|cool|like|well|yes/gi;
+    const negative = /bad|terrible|awful|hate|sad|poor|wrong|not|no|never|can't|cannot|don't|fail/gi;
+    let posMatches = (text.match(positive) || []).length;
+    let negMatches = (text.match(negative) || []).length;
+    return (posMatches - negMatches) / 5;
+    }
+    
+    updateContext(analysis){
+    // Update mood based on sentiment
+    this.mood = this.mood * 0.7 + analysis.sentiment * 0.3;
+    if(this.mood > 1) this.mood = 1;
+    if(this.mood < 0) this.mood = 0;
+    
+    // Update topics
+    if(analysis.topics.length > 0){
+    analysis.topics.forEach(topic => {
+    if(!this.topics[topic]) this.topics[topic] = 0;
+    this.topics[topic]++;
+    });
+    }
+    
+    // Update context
+    this.context.lastWasQuestion = analysis.isQuestion;
+    if(analysis.isIdentity) this.context.talkingAboutIdentity = true;
+    if(analysis.isGreeting) this.context.justGreeted = true;
+    
+    // Track repeated patterns
+    if(this.history.length > 0){
+    const prev = this.history[0];
+    if(prev.analysis && 
+    prev.analysis.isQuestion === analysis.isQuestion &&
+    prev.analysis.sentiment === analysis.sentiment)
+    {
+    this.context.repetitivePattern = true;
+    }
+    }
+    }
+    
+    getTopTopic(){
+    let maxScore = 0;
+    let topTopic = "that";
+      
+    for(let topic in this.topics){
+    if(this.topics[topic] > maxScore){
+    maxScore = this.topics[topic];
+    topTopic = topic;
+    }
+    }
+    return topTopic;
+    }
+    
+    getRandomFromArray(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+    }
+    
+    generateMarkovText(seedWord, length = 15){
+    let result = [seedWord || this.getRandomFromArray(Object.keys(this.markov))];
+      
+    for(let i = 0; i < length; i++){
+    const lastWord = result[result.length - 1];
+    if(!this.markov[lastWord]) break;
+      
+    const nextWords = this.markov[lastWord];
+    if(!nextWords || nextWords.length === 0) break;
+      
+    result.push(this.getRandomFromArray(nextWords));
+    if(result[result.length - 1].endsWith('.')) break;
+    }
+      
+    return result.join(' ');
+    }
+    
+    fillTemplate(template){
+    const topic = this.getTopTopic();
+    const prevTopic = Object.keys(this.topics).length > 1 ? 
+    Object.keys(this.topics).find(t => t !== topic && this.topics[t] > 0) || "that" : 
+    "our conversation";
+    
+    const emotionWords = this.mood > 0.7 ? "positive" : 
+    this.mood < 0.3 ? "negative" : "neutral";
+    
+    const progressWords = this.mood > 0.6 ? "productive" : 
+    this.mood < 0.4 ? "challenging" : "interesting";
+    
+    const reasonWords = this.generateMarkovText("because", 5);
+    
+    return template
+    .replace("{greeting}", this.getRandomFromArray(this.words.greeting))
+    .replace("{self}", this.getRandomFromArray(this.words.self))
+    .replace("{think}", this.getRandomFromArray(this.words.think))
+    .replace("{like}", this.getRandomFromArray(this.words.like))
+    .replace("{dont}", this.getRandomFromArray(this.words.dont))
+    .replace("{concept}", this.getRandomFromArray(this.words.concept))
+    .replace("{interesting}", this.getRandomFromArray(this.words.interesting))
+    .replace("{question}", this.getRandomFromArray(this.words.question))
+    .replace("{feeling}", this.getRandomFromArray(this.words.feeling))
+    .replace("{sorry}", this.getRandomFromArray(this.words.sorry))
+    .replace("{happy}", this.getRandomFromArray(this.words.happy))
+    .replace("{sad}", this.getRandomFromArray(this.words.sad))
+    .replace("{curious}", this.getRandomFromArray(this.words.curious))
+    .replace("{understand}", this.getRandomFromArray(this.words.understand))
+    .replace("{agree}", this.getRandomFromArray(this.words.agree))
+    .replace("{disagree}", this.getRandomFromArray(this.words.disagree))
+    .replace("{help}", this.getRandomFromArray(this.words.help))
+    .replace("{world}", this.getRandomFromArray(this.words.world))
+    .replace("{human}", this.getRandomFromArray(this.words.human))
+    .replace("{learning}", this.getRandomFromArray(this.words.learning))
+    .replace("{unknown}", this.getRandomFromArray(this.words.unknown))
+    .replace("{topic}", topic)
+    .replace("{prevTopic}", prevTopic)
+    .replace("{emotion}", emotionWords)
+    .replace("{progress}", progressWords)
+    .replace("{reason}", reasonWords);
+    }
+    
+    learnFromText(text){
+    // Very simple learning - add new word connections to markov chain
+    const words = text.toLowerCase().split(/[^a-z0-9']+/).filter(w => w && w.length > 2);
+    for(let i = 0; i < words.length - 1; i++){
+    const word = words[i];
+    const nextWord = words[i+1];
+    if(!this.markov[word]) this.markov[word] = [];
+    if(!this.markov[word].includes(nextWord)) this.markov[word].push(nextWord);
+    }
+    
+    // Add any longer phrases to corpus for future reference
+    if(text.length > 20 && text.length < 100){
+    this.corpora.push(text);
+    if(this.corpora.length > 50) this.corpora.shift();
+    }
+    }
+    
+    generateSpecificResponse(analysis){
+    if(analysis.isGreeting && analysis.length < 10)
+    return this.getRandomFromArray(this.words.greeting) + "! How can I help you today?";
+      
+    if(analysis.isIdentity)
+    return "I am SYNEVA, a micro-generative neural network with basic contextual understanding capabilities.";
+      
+    if(analysis.isThanks)
+    return "You're welcome! I'm happy to assist with my limited capabilities.";
+      
+    if(this.context.repetitivePattern)
+    return "I notice we might be in a repetitive pattern. Perhaps we could explore a different topic?";
+      
+    if(analysis.words.length < 3 && !analysis.isQuestion)
+    return "I need a bit more context to generate a meaningful response.";
+      
+    return null; // No specific response needed
+    }
+    
+    generateContextualResponse(text, analysis){
+    // Try specific response patterns first
+    const specificResponse = this.generateSpecificResponse(analysis);
+    if(specificResponse) return specificResponse;
+    
+    // For questions, try to be more direct
+    if(analysis.isQuestion){
+    // Look for content that might match the question
+    let relevantWord = analysis.words.find(w => this.markov[w]);
+    if(relevantWord){
+    return this.generateMarkovText(relevantWord, 10) + 
+    (Math.random() > 0.7 ? " What else would you like to know?" : "");
+    }
+    }
+    
+    // Default: use template system with 30% chance of markov
+    if(Math.random() > 0.7){
+    // Use markov chain generation
+    let seedWord = analysis.words.find(w => this.markov[w]) || "I";
+    return this.generateMarkovText(seedWord, 12);
+    } else {
+    // Use template system
+    return this.fillTemplate(this.getRandomFromArray(this.templates));
+    }
+    }
+    
+    respondTo(text){
+    if(!text.trim()) return "Say something?";
+    
+    // Add to history
+    const analysis = this.analyze(text);
+    this.history.unshift({text, analysis});
+    if(this.history.length > 5) this.history.pop();
+    
+    // Learn from this text
+    this.learnFromText(text);
+    this.updateContext(analysis);
+    
+    // Generate response
+    return this.generateContextualResponse(text, analysis);
+    }
+    
+    logo(){
+    const A = "SSSSS  Y   Y  N   N  EEEEE  V   V     A    |S      Y   Y  NN  N  E      V   V    A A   |SSSSS   Y Y   N N N  EEEE   V   V   AAAAA  |    S    Y    N  NN  E       V V    A   A  |SSSSS    Y    N   N  EEEEE    V     A   A";
+    return A.split("|").map(s=>"    "+s).join("\n");
+    }
+    
+    startup(){
+    return `v2.0 - µGen\n\n<span class=h>${this.logo()}</span>\n\n<span class=c>Micro-Generative AI</span>\n\n<span class=s>SYNEVA: Hello! I'm a tiny generative AI. How can I help you?</span>`;
+    }}
+    
+    const syneva = new SYNEVA();
+    o.innerHTML = syneva.startup();
+    onkeydown = e => {
+    let v = i.value.trim();
+    if(e.key == "Enter" && v){
+    o.innerHTML += `\n\n<span class=y>YOU: ${v}</span>\n<span class=s>SYNEVA: ${syneva.respondTo(v)}</span>`;
+    i.value = "";
+    o.scrollTop = 9e9;
+    }
+    }</script></body></html>

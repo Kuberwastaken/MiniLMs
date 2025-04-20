@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>S</title>
+<style>
+*{margin:0;font:13px/1.3 monospace}
+body{background:#000;height:100vh;display:flex;flex-direction:column;padding:5px;color:#0f0}
+#o{flex:1;overflow:auto;padding:3px;white-space:pre-wrap}
+#i{background:#111;border:1px solid #0f0;color:#0f0;padding:3px;margin-top:3px;outline:0;width:calc(100% - 8px)}
+::selection{background:#0f0;color:#000}
+.a{color:#66f}.b{color:#0f0}.c{color:#0a0}
+</style>
+<body>
+<div id=o></div>
+<input id=i placeholder="..." autofocus>
+<script>
+// Chatbot responses
+let T=[["Hello! Need help?","Hi there!","Greetings!"],["I'm SYNEVA - a neural chatbot","I'm here to chat","I can process various topics"],["Could you explain more?","I'd like to understand better","Tell me more"],["I see. What else?","Got it. Anything more?","I understand now"],["That's great news!","I'm glad to hear that","Sounds positive!"],["I'm here if you need to talk","Something wrong?","How can I help?"],["I'm still learning that area","I don't have enough info","That's beyond my abilities"],["Let's talk about something else","Want to change topics?","What other topics interest you?"],["That's an interesting perspective","I'm curious about your thoughts","What makes you think that?"],["Goodbye then!","Until next time!","Have a great day!"]],
+D={
+  "how are you":[4,"I'm doing great, thanks for asking! How about you?"], // New entry for natural response
+  "hi":[0,"Hello! How can I help with {0}?"],
+  "why":[2,"I think it's because {0}, based on what I understand"],
+  "what":[2,"{0} is an interesting concept to explore"],
+  "how":[2,"To {0}, you might need to consider a few steps"], // Less generic template
+  "can":[2,"Yes, {0} should be possible"],
+  "help":[0,"I'd be happy to help with {0}"],
+  "like":[8,"I find {0} fascinating as well"],
+  "time":[8,"Time is certainly important when considering {0}"],
+  "you":[1,"As an AI, I try to {0} effectively"],
+  "syneva":[1,"SYNEVA is designed to {0}"],
+  "thanks":[4,"You're welcome! I'm glad I could help with {0}"],
+  "bye":[9,"Goodbye! I hope {0} works out well for you"],
+  "life":[8,"Life is indeed about {0} among other things"],
+  "meaning":[8,"Finding meaning in {0} is quite profound"]
+};
+
+// Neural Network (unchanged from previous implementation)
+let W = {
+  vocab: {"hi":0,"hello":0,"hey":0,"why":1,"what":2,"how":3,"you":4,"syneva":5,"bye":6,"good":7,"bad":8,"help":9,"time":10,"life":11,"meaning":12,"is":13,"are":14,"to":15},
+  E: [[0.1,-0.2,0.3,0.1],[0.2,0.1,-0.1,0.3],[0.3,-0.1,0.2,-0.2],[0.1,0.3,-0.2,0.1],[-0.1,0.2,0.1,-0.3],[0.2,-0.3,0.1,0.2],[0.1,0.1,-0.2,0.3],[0.3,0.2,-0.1,0.1],[-0.2,0.1,0.3,-0.1],[-0.1,0.3,-0.2,0.2],[0.2,-0.1,0.3,0.1],[-0.3,0.2,0.1,-0.2],[0.1,-0.2,0.3,0.1],[0.2,0.1,-0.1,0.3],[0.1,-0.1,0.2,-0.2],[0.3,0.2,-0.1,0.1]],
+  W1: Array(48).fill().map(() => Array(8).fill().map(() => (Math.random() - 0.5) * 0.1)),
+  W2: Array(8).fill().map(() => Array(10).fill().map(() => (Math.random() - 0.5) * 0.1)),
+  b1: Array(8).fill(0),
+  b2: Array(10).fill(0),
+  e: t => {
+    let v = Array(48).fill(0),
+        words = t.toLowerCase().split(/\W+/).slice(0,12);
+    words.forEach((w, i) => {
+      let idx = W.vocab[w] || 0;
+      if (W.E[idx]) for (let j = 0; j < 4; j++) v[i*4+j] = W.E[idx][j];
+    });
+    return v;
+  },
+  d: i => {
+    let h = Array(8).fill(0);
+    for (let j = 0; j < 8; j++) {
+      for (let k = 0; k < 48; k++) h[j] += i[k] * W.W1[k][j];
+      h[j] = Math.max(0, h[j] + W.b1[j]);
+    }
+    let o = Array(10).fill(0);
+    for (let j = 0; j < 10; j++) {
+      for (let k = 0; k < 8; k++) o[j] += h[k] * W.W2[k][j];
+      o[j] += W.b2[j];
+    }
+    let max = Math.max(...o), e = o.map(x => Math.exp(x - max)), s = e.reduce((a,b) => a+b, 0);
+    return e.map(x => x / s);
+  }
+};
+
+// Core Chatbot Logic
+let O = document, E = O.getElementById('o'), I = O.getElementById('i'), H = [], Z = [], L = -1,
+Y = r => { Z.unshift(r); if (Z.length > 3) Z.pop(); return r },
+X = t => {
+  t = t.toLowerCase();
+  return {
+    G: /hi|hello|hey/.test(t),
+    Q: /\?|how|what|why/.test(t),
+    I: /you$|your|syneva/.test(t),
+    F: /bye|exit|done|goodbye/.test(t),
+    P: /good|well|happy|great|yes|yeah|sure/.test(t),
+    N: /bad|sad|upset|problem|no|not/.test(t)
+  };
+},
+J = t => {
+  let tl = t.toLowerCase();
+  // Check for exact phrase matches first
+  if (tl.includes("how are you")) return [4, D["how are you"][1]];
+  // Fallback to keyword matching
+  let w = tl.split(/\W+/).filter(x => x.length > 2), k = "";
+  for (let i = 0; i < w.length; i++) if (D[w[i]]) {
+    k = w[i];
+    let c = w.filter(x => x != k).join(" ") || "that";
+    return [D[k][0], D[k][1].replace("{0}", c)];
+  }
+  return [-1, ""];
+},
+P = t => {
+  if (!t.trim()) return Y("Please ask something");
+  H.unshift(t); if (H.length > 5) H.pop();
+  let f = X(t), o = W.d(W.e(t)), [d, p] = J(t), m = 0;
+  // Prioritize exact matches from J
+  if (p && Z.indexOf(p) < 0) return Y(p);
+  // Use neural network for ambiguous inputs
+  o.forEach((v, i) => v > o[m] && (m = i));
+  if (f.G && t.length < 12) m = 0;
+  if (f.I) m = 1;
+  if (f.Q) m = 2;
+  if (f.P) m = 4;
+  if (f.N) m = 5;
+  if (f.F) m = 9;
+  L = m;
+  let resp = T[m][~~(Math.random() * T[m].length)];
+  return Y(resp);
+};
+
+// Initialize UI
+E.innerHTML = `V10.15\n\n<span class=c>SYNEVA</span>\n\n<span class=b>S: ${T[0][0]}</span>`;
+I.onkeydown = e => {
+  if (e.key == "Enter") {
+    let t = I.value.trim();
+    if (t) {
+      E.innerHTML += `\n\n<span class=a>Y: ${t}</span>\n<span class=b>S: ${P(t)}</span>`;
+      I.value = "";
+      E.scrollTop = 9e9;
+    }
+  }
+};
+</script>
+</body>

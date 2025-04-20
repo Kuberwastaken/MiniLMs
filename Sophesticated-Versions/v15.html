@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SYNEVA</title>
+  <style>
+    body {
+      background-color: black;
+      color: #0f0;
+      font-family: monospace;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    #chat-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    #input-container {
+      display: flex;
+    }
+    #user-input {
+      flex-grow: 1;
+      background-color: black;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 5px;
+      font-family: monospace;
+    }
+    .user-msg {
+      color: #7f7;
+    }
+    .bot-msg {
+      color: #0f0;
+    }
+    .cursor {
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div class="bot-msg">SYNEVA v0.15 initialized. How can I assist you today?</div>
+  </div>
+  <div id="input-container">
+    <span>></span>&nbsp;<input id="user-input" type="text" autofocus>
+  </div>
+
+  <script>
+    // Ultra-compact transformer implementation
+    class Syneva {
+      constructor() {
+        // Load or initialize model parameters
+        this.params = JSON.parse(localStorage.getItem('syneva_params')) || this.initParams();
+        this.context = [];
+        this.maxContext = 5;
+        this.fallbacks = [
+          "I'm thinking about that...",
+          "Interesting question. Let me process that.",
+          "I'm not sure, but I'll try my best.",
+          "Could you provide more details?",
+          "Let me analyze that further."
+        ];
+        this.memory = JSON.parse(localStorage.getItem('syneva_memory')) || {};
+        this.learnRate = 0.05;
+      }
+
+      initParams() {
+        // Create tiny parameter set (~5k parameters)
+        // Using layered matrices for embedding, attention, and output generation
+        const p = {
+          // Embedding matrix (vocab x embedding_dim): ~1600 params
+          emb: Array(80).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          
+          // Attention matrices: ~800 params
+          wq: Array(20).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          wk: Array(20).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          wv: Array(20).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          
+          // Output projection: ~1600 params
+          out: Array(20).fill().map(() => Array(80).fill().map(() => Math.random() * 0.2 - 0.1)),
+          
+          // Feed-forward network: ~800 params
+          ff1: Array(20).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          ff2: Array(20).fill().map(() => Array(20).fill().map(() => Math.random() * 0.2 - 0.1)),
+          
+          // Layernorm parameters: ~80 params
+          ln1: Array(20).fill().map(() => Math.random() * 0.1 + 0.9),
+          ln2: Array(20).fill().map(() => Math.random() * 0.1 + 0.9),
+          
+          // Simple vocabulary - character based with specials
+          vocab: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,?!'\"-:;()[]{}=+/*\\<>_@#$%^&~`|"
+        };
+        return p;
+      }
+      
+      tokenize(text) {
+        // Character-level tokenization
+        return [...text].map(c => this.params.vocab.indexOf(c) !== -1 ? 
+                             this.params.vocab.indexOf(c) : 
+                             this.params.vocab.indexOf(' '));
+      }
+      
+      detokenize(tokens) {
+        return tokens.map(t => this.params.vocab[t]).join('');
+      }
+      
+      // Matrix operations
+      matMul(a, b) {
+        const result = Array(a.length).fill().map(() => Array(b[0].length).fill(0));
+        for (let i = 0; i < a.length; i++) {
+          for (let j = 0; j < b[0].length; j++) {
+            for (let k = 0; k < a[0].length; k++) {
+              result[i][j] += a[i][k] * b[k][j];
+            }
+          }
+        }
+        return result;
+      }
+      
+      vecMatMul(vec, mat) {
+        const result = Array(mat[0].length).fill(0);
+        for (let i = 0; i < mat[0].length; i++) {
+          for (let j = 0; j < vec.length; j++) {
+            result[i] += vec[j] * mat[j][i];
+          }
+        }
+        return result;
+      }
+      
+      matVecMul(mat, vec) {
+        const result = Array(mat.length).fill(0);
+        for (let i = 0; i < mat.length; i++) {
+          for (let j = 0; j < vec.length; j++) {
+            result[i] += mat[i][j] * vec[j];
+          }
+        }
+        return result;
+      }
+      
+      softmax(vec) {
+        const max = Math.max(...vec);
+        const exp = vec.map(x => Math.exp(x - max));
+        const sum = exp.reduce((a, b) => a + b, 0);
+        return exp.map(x => x / sum);
+      }
+      
+      layerNorm(vec, params) {
+        const mean = vec.reduce((a, b) => a + b, 0) / vec.length;
+        const variance = vec.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / vec.length;
+        return vec.map((x, i) => params[i] * (x - mean) / Math.sqrt(variance + 1e-5));
+      }
+      
+      relu(vec) {
+        return vec.map(x => Math.max(0, x));
+      }
+      
+      // Forward pass of our tiny transformer
+      forward(input) {
+        // Get embeddings for each token
+        const embeddings = input.map(token => 
+          token < this.params.vocab.length ? this.params.emb[token] : this.params.emb[0]
+        );
+        
+        // Process each embedding with our attention mechanism
+        const processed = embeddings.map((emb, pos) => {
+          // Self-attention on all previous tokens
+          const q = this.matVecMul(this.params.wq, emb);
+          const contextWindow = embeddings.slice(0, pos + 1);
+          
+          // Calculate attention scores
+          const attScores = contextWindow.map(ctx => {
+            const k = this.matVecMul(this.params.wk, ctx);
+            // Calculate dot product
+            return q.reduce((acc, val, i) => acc + val * k[i], 0) / Math.sqrt(q.length);
+          });
+          
+          // Apply softmax to get attention weights
+          const attWeights = this.softmax(attScores);
+          
+          // Calculate weighted values
+          const weightedVals = contextWindow.map((ctx, i) => {
+            const v = this.matVecMul(this.params.wv, ctx);
+            return v.map(val => val * attWeights[i]);
+          });
+          
+          // Sum the weighted values
+          const attOutput = weightedVals.reduce((acc, val) => 
+            acc.map((x, i) => x + val[i]), Array(this.params.wv.length).fill(0)
+          );
+          
+          // Apply first layer norm
+          const norm1 = this.layerNorm(attOutput, this.params.ln1);
+          
+          // Feed-forward network
+          const ff1 = this.matVecMul(this.params.ff1, norm1);
+          const relu1 = this.relu(ff1);
+          const ff2 = this.matVecMul(this.params.ff2, relu1);
+          
+          // Apply second layer norm
+          const norm2 = this.layerNorm(ff2, this.params.ln2);
+          
+          return norm2;
+        });
+        
+        // Get the final representation
+        const final = processed[processed.length - 1];
+        
+        // Project to vocabulary space
+        const logits = this.matVecMul(this.params.out, final);
+        
+        // Return probability distribution
+        return this.softmax(logits);
+      }
+      
+      // Memory-based prediction enhancement
+      enhancePrediction(input, probs) {
+        const key = input.slice(-10).join('');
+        if (this.memory[key]) {
+          // Blend memory-based statistics with model predictions
+          const memoryDist = Array(probs.length).fill(0);
+          Object.entries(this.memory[key]).forEach(([token, count]) => {
+            memoryDist[parseInt(token)] = count;
+          });
+          const total = memoryDist.reduce((a, b) => a + b, 0);
+          const memoryProbs = memoryDist.map(x => (x / total) || 0);
+          
+          // Blend with model prediction (70% model, 30% memory)
+          return probs.map((p, i) => 0.7 * p + 0.3 * (memoryProbs[i] || 0));
+        }
+        return probs;
+      }
+      
+      // Learn from interaction
+      learnFromInteraction(input, response) {
+        // Update memory with observed outputs
+        const key = input.slice(-10).join('');
+        this.memory[key] = this.memory[key] || {};
+        
+        response.forEach(token => {
+          this.memory[key][token] = (this.memory[key][token] || 0) + 1;
+        });
+        
+        // Save memory to localStorage
+        localStorage.setItem('syneva_memory', JSON.stringify(this.memory));
+      }
+      
+      // Generate a response
+      async generateResponse(inputText) {
+        // Check for direct pattern matches in memory
+        const inputLower = inputText.toLowerCase();
+        
+        // Add to context
+        this.context.push(inputText);
+        if (this.context.length > this.maxContext) {
+          this.context.shift();
+        }
+        
+        // Should we use a fallback? (10% chance or if very uncertain)
+        if (Math.random() < 0.1) {
+          return this.fallbacks[Math.floor(Math.random() * this.fallbacks.length)];
+        }
+        
+        // Tokenize input
+        const tokens = this.tokenize(this.context.join(' ').slice(-100));
+        
+        // Generate response tokens
+        let responseTokens = [];
+        let maxLen = 50 + Math.floor(Math.random() * 50); // Variable length responses
+        
+        for (let i = 0; i < maxLen; i++) {
+          // Forward pass to get next token probabilities
+          const inputSeq = [...tokens, ...responseTokens];
+          const probs = this.forward(inputSeq);
+          
+          // Enhance with memory
+          const enhancedProbs = this.enhancePrediction(inputSeq, probs);
+          
+          // Sample from probability distribution
+          let nextToken;
+          const p = Math.random();
+          let cumProb = 0;
+          for (let j = 0; j < enhancedProbs.length; j++) {
+            cumProb += enhancedProbs[j];
+            if (p < cumProb) {
+              nextToken = j;
+              break;
+            }
+          }
+          
+          // Add to response
+          responseTokens.push(nextToken);
+          
+          // Check for potential end of response
+          if (i > 10 && this.params.vocab[nextToken] === '.') {
+            if (Math.random() < 0.3) break;
+          }
+        }
+        
+        // Learn from this interaction
+        this.learnFromInteraction(tokens, responseTokens);
+        
+        // Convert tokens back to text
+        return this.detokenize(responseTokens);
+      }
+    }
+
+    // Initialize our tiny model
+    const syneva = new Syneva();
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+
+    // Typing effect
+    function typeResponse(text, element) {
+      return new Promise(resolve => {
+        let i = 0;
+        const responseSpan = document.createElement('span');
+        const cursorSpan = document.createElement('span');
+        cursorSpan.className = 'cursor';
+        cursorSpan.textContent = '█';
+        
+        element.appendChild(responseSpan);
+        element.appendChild(cursorSpan);
+        
+        const typing = setInterval(() => {
+          if (i < text.length) {
+            responseSpan.textContent += text[i++];
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+          } else {
+            clearInterval(typing);
+            element.removeChild(cursorSpan);
+            resolve();
+          }
+        }, 20);
+      });
+    }
+
+    // Handle user input
+    userInput.addEventListener('keydown', async function(e) {
+      if (e.key === 'Enter') {
+        const message = userInput.value.trim();
+        if (!message) return;
+        
+        // Display user message
+        const userMsgEl = document.createElement('div');
+        userMsgEl.className = 'user-msg';
+        userMsgEl.textContent = `> ${message}`;
+        chatContainer.appendChild(userMsgEl);
+        
+        // Clear input
+        userInput.value = '';
+        userInput.disabled = true;
+        
+        // Generate and display bot response
+        const botMsgEl = document.createElement('div');
+        botMsgEl.className = 'bot-msg';
+        chatContainer.appendChild(botMsgEl);
+        
+        try {
+          const response = await syneva.generateResponse(message);
+          await typeResponse(response, botMsgEl);
+        } catch (err) {
+          await typeResponse("Error processing request. System recovering...", botMsgEl);
+        }
+        
+        userInput.disabled = false;
+        userInput.focus();
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    });
+
+    // Display startup sequence
+    window.onload = async function() {
+      userInput.focus();
+    };
+  </script>
+</body>
+</html>
