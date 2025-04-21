@@ -31,7 +31,7 @@ graph TD
 ## 📦 Components
 
 ### [SYNEVA](./SYNEVA/README.md)
-The first practical implementation in the MiniLMs series. SYNEVA demonstrates the evolution from basic pattern matching to a minimal transformer architecture, with a focus on size optimization and architectural improvements.
+The first practical implementation in the MiniLMs series. SYNEVA demonstrates the evolution from basic pattern matching to a markov chain with a focus on size optimization and architectural improvements, with a 3kB constraint so as to fit in a minimal QR-code sized footprint.
 
 ### [STUDY-RESOURCES](./STUDY-RESOURCES/README.md)
 A curated collection of learning materials, reference implementations, and research papers used throughout the project. Includes detailed notes and practical examples.
