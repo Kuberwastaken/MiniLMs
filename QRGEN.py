@@ -1,4 +1,5 @@
 # v42 - QRGEN.py
+# Taken from https://github.com/Kuberwastaken/backdooms
 #Usage: python3 QRGEN.py [htmlfilehere.html] [nameofoutput.png]
 #!/usr/bin/env python3
 import zlib
