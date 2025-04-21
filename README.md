@@ -88,6 +88,11 @@ graph LR
    - Edge device implementations
    - Browser-based demos
 
+4. **This**
+<p align="center">
+  <img src="MEDIA\Tweet1.png" alt="Future Tweet">
+</p>
+
 ## 📝 Contributing
 
 Contributions are welcome! Please feel free to:
