@@ -7,7 +7,8 @@
 </p>
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs/MEDIA/SYNEVA.png" alt="MiniLMs Project Banner"
+    <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs@main/MEDIA/SYNEVA.png" alt="SYNEVA">
+
 </p>
 
 ## 🔍 Overview
@@ -15,7 +16,7 @@
 SYNEVA represents the first practical implementation in the MiniLMs project, demonstrating the evolution of language model architectures from basic pattern matching to a minimal transformer implementation. The project works with a strict 2.9KB size constraint (QR code limit)
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs/SYNEVA/qrcode.png" alt="MiniLMs Project Banner"
+    <img src="./qrcode.png" alt="SYNEVA QR Code"
 </p>
 
 ## 📊 Technical Evolution

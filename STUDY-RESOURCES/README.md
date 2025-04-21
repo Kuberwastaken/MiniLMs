@@ -1,4 +1,4 @@
-# MiniLMs Study Resources
+<h1 align="center">MiniLMs Study Resources</h1>
 
 <p align="center">
    <img src="https://img.shields.io/badge/content-educational-green" alt="Content Type">
@@ -6,7 +6,8 @@
 </p>
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs/MEDIA/STUDY-RESOURCES.png" alt="MiniLMs Project Banner"
+   <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs@main/MEDIA/STUDY-RESOURCES.png" alt="Study Resources">
+
 </p>
 
 ## 📚 Overview

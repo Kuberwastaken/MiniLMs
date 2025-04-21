@@ -1,4 +1,4 @@
-# MiniLMs: Exploring Minimal Language Model Architectures
+<h1 align="center">MiniLMs: Exploring Minimal Language Model Architectures</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-Active-brightgreen" alt="Status">
@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs/MEDIA/MiniLMs-Banner.png" alt="MiniLMs Project Banner" width="800">
+  <img src="MEDIA\MiniLMs-Banner.png" alt="MiniLMs Project Banner" width="800">
 </p>
 
 ## 🔍 Overview
