@@ -1,4 +1,4 @@
-# SYNEVA: Synthetic Neural Evolution for Verbal Adaptability
+# SYNEVA: Synthetic Neural Engine for Verbal Adaptability
 
 <p align="center">
     <img src="https://img.shields.io/badge/version-0.22-brightgreen" alt="Version">
@@ -16,7 +16,10 @@
 SYNEVA represents the first practical implementation in the MiniLMs project, demonstrating the evolution of language model architectures from basic pattern matching to a minimal transformer implementation. The project works with a strict 2.9KB size constraint (QR code limit)
 
 <p align="center">
-    <img src="./qrcode.png" alt="SYNEVA QR Code"
+   <img src="./qrcode.png" alt="SYNEVA QR Code">
+</p>
+<p align="center">
+   <em>Use <a href="https://scanqr.org/">this tool</a> to scan larger QR codes if your device doesn't support it</em>
 </p>
 
 ## 📊 Technical Evolution
