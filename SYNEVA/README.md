@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-    <img src="https://cdn.jsdelivr.net/gh/Kuberwastaken/MiniLMs@main/MEDIA/SYNEVA.png" alt="SYNEVA">
+    <img src="https://raw.githubusercontent.com/Kuberwastaken/MiniLMs/refs/heads/main/MEDIA/SYNEVA.png" alt="SYNEVA">
 
 </p>
 
@@ -26,10 +26,10 @@ graph TD
     A[Pattern Matching Era<br>v0-v7<br>800B-3.3KB] --> B[Neural Era<br>v8-v10<br>3.2-11KB]
     B --> C[Hybrid Era<br>v10.5-v17<br>5.3-11KB]
     C --> D[Extended Versions<br>gpt/F series<br>v18-v21]
-    style A fill:#f9f,stroke:#333
-    style B fill:#bbf,stroke:#333
-    style C fill:#bfb,stroke:#333
-    style D fill:#fbf,stroke:#333
+    style A fill:#f9f,stroke:#333,color:#000
+    style B fill:#bbf,stroke:#333,color:#000
+    style C fill:#bfb,stroke:#333,color:#000
+    style D fill:#fbf,stroke:#333,color:#000
 ```
 
 ### Architecture Phases
@@ -91,7 +91,6 @@ SYNEVA/
 ```
 
 ## 📈 Performance Metrics
-
 ```mermaid
 graph LR
     A((Size)) --> B((Response<br>Time))
@@ -99,10 +98,10 @@ graph LR
     C --> D((Response<br>Quality))
     D --> A
     
-    style A fill:#f96
-    style B fill:#9f6
-    style C fill:#69f
-    style D fill:#f69
+    style A fill:#f96,stroke:#333,color:#000
+    style B fill:#9f6,stroke:#333,color:#000
+    style C fill:#69f,stroke:#333,color:#000
+    style D fill:#f69,stroke:#333,color:#000
 ```
 
 ## 🔬 Technical Highlights
