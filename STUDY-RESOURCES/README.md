@@ -16,23 +16,29 @@ This directory contains a curated collection of study materials, implementations
 
 ## 📂 Directory Structure
 
+## 📂 Directory Structure
+
 ```mermaid
 graph TD
-    A[Study Resources] --> B[Neural Networks from Scratch]
-    A --> C[LLMs from Scratch]
-    A --> D[Reference Documents]
-    B --> B1[Implementation]
-    B --> B2[Documentation]
-    C --> C1[Core Chapters]
-    C --> C2[Appendices]
-    C --> C3[Utilities]
-    D --> D1[Neural Network Basics]
-    D --> D2[ELIZA History]
+   A[Study Resources] --> B[Neural Networks from Scratch]
+   A --> C[LLMs from Scratch]
+   A --> D[Reference Documents]
+   A --> E[Cohere LLM University]
+   B --> B1[Implementation]
+   B --> B2[Documentation]
+   C --> C1[Core Chapters]
+   C --> C2[Appendices]
+   C --> C3[Utilities]
+   D --> D1[Neural Network Basics]
+   D --> D2[ELIZA History]
+   E --> E1[Course Materials]
+   E --> E2[Exercises]
 
-    style A fill:#f9f,stroke:#333
-    style B fill:#bbf,stroke:#333
-    style C fill:#bfb,stroke:#333
-    style D fill:#fbb,stroke:#333
+   style A fill:#f9f,stroke:#333
+   style B fill:#bbf,stroke:#333
+   style C fill:#bfb,stroke:#333
+   style D fill:#fbb,stroke:#333
+   style E fill:#fbf,stroke:#333
 ```
 
 ## 📖 Content Overview
