@@ -383,7 +383,7 @@ const Chatbots = () => {
     if (!selectedSyneva && synevaVersions.length > 0) {
       setSelectedSyneva(synevaVersions[0]);
     }
-  }, []);
+  }, [selectedSyneva, synevaVersions]);
 
   const handleSelectSyneva = (version) => {
     setSelectedSyneva(version);
