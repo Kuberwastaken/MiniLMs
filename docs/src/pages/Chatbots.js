@@ -266,6 +266,8 @@ const Chatbots = () => {
   const [selectedSyneva, setSelectedSyneva] = useState(null);
   const [selectedAbella, setSelectedAbella] = useState(null);
 
+  const basePath = process.env.PUBLIC_URL || '';
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.dropdown-container')) {
@@ -286,48 +288,42 @@ const Chatbots = () => {
       name: 'SYNEVA Latest', 
       version: 'Latest', 
       description: 'The latest version of SYNEVA with improved conversational abilities and expanded knowledge.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/SYNEVA.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/SYNEVA.html'
+      filePath: '/SYNEVA/SYNEVA.html'
     },
     { 
       id: 'v17', 
       name: 'SYNEVA v17', 
       version: 'v17', 
       description: 'Version 17 with enhanced pattern matching and response variety.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/ARCHIVE/v17.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/ARCHIVE/v17.html'
+      filePath: '/SYNEVA/ARCHIVE/v17.html'
     },
     { 
       id: 'v15', 
       name: 'SYNEVA v15', 
       version: 'v15',
       description: 'Version 15 featuring improved dialogue flow and contextual awareness.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/ARCHIVE/v15.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/ARCHIVE/v15.html'
+      filePath: '/SYNEVA/ARCHIVE/v15.html'
     },
     { 
       id: 'v12', 
       name: 'SYNEVA v12', 
       version: 'v12',
       description: 'Version 12 with initial context tracking capabilities.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/ARCHIVE/v12.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/ARCHIVE/v12.html'
+      filePath: '/SYNEVA/ARCHIVE/v12.html'
     },
     { 
       id: 'v10', 
       name: 'SYNEVA v10', 
       version: 'v10',
       description: 'Version 10 featuring expanded response templates.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/ARCHIVE/v10.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/ARCHIVE/v10.html'
+      filePath: '/SYNEVA/ARCHIVE/v10.html'
     },
     { 
       id: 'v5', 
       name: 'SYNEVA v5', 
       version: 'v5',
       description: 'Version 5, one of the early implementations with basic conversational capabilities.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/SYNEVA/ARCHIVE/v5.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/SYNEVA/ARCHIVE/v5.html'
+      filePath: '/SYNEVA/ARCHIVE/v5.html'
     }
   ];
 
@@ -337,56 +333,49 @@ const Chatbots = () => {
       name: '15ABELLA POC-V2.3', 
       version: 'POC-V2.3',
       description: 'The latest version with optimized pattern matching and improved response generation.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/POC-V2.3.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC-V2.3.html'
+      filePath: '/15ABELLA/POC-V2.3.html'
     },
     { 
       id: 'poc-v22', 
       name: '15ABELLA POC-V2.2', 
       version: 'POC-V2.2',
       description: 'Version 2.2 with enhanced response variety and pattern recognition.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/POC-V2.2.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC-V2.2.html'
+      filePath: '/15ABELLA/POC-V2.2.html'
     },
     { 
       id: 'poc-v21', 
       name: '15ABELLA POC-V2.1', 
       version: 'POC-V2.1',
       description: 'Version 2.1 featuring improved conversation flow.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/POC-V2.1.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC-V2.1.html'
+      filePath: '/15ABELLA/POC-V2.1.html'
     },
     { 
       id: 'poc-v2', 
       name: '15ABELLA POC-v2', 
       version: 'POC-v2',
       description: 'Proof of Concept version 2 with initial pattern matching capabilities.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/POC-v2.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC-v2.html'
+      filePath: '/15ABELLA/POC-v2.html'
     },
     { 
       id: 'poc', 
       name: '15ABELLA POC', 
       version: 'POC',
       description: 'The original Proof of Concept implementation.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/POC.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC.html'
+      filePath: '/15ABELLA/POC.html'
     },
     { 
       id: 'v02', 
       name: '15ABELLA v0.2', 
       version: 'v0.2',
       description: 'Version 0.2 with basic conversational abilities.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/v0.2.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/v0.2.html'
+      filePath: '/15ABELLA/v0.2.html'
     },
     { 
       id: 'v01', 
       name: '15ABELLA v0.1', 
       version: 'v0.1',
       description: 'The initial version of 15ABELLA.',
-      githubUrl: 'https://github.com/Kuberwastaken/MiniLMs/blob/main/15ABELLA/v0.1.html',
-      directUrl: 'https://kuberwastaken.github.io/MiniLMs/15ABELLA/v0.1.html'
+      filePath: '/15ABELLA/v0.1.html'
     }
   ];
 
@@ -491,20 +480,11 @@ const Chatbots = () => {
                   </VersionInfo>
                   
                   <LinkButton 
-                    href={selectedSyneva.directUrl} 
+                    href={`${basePath}${selectedSyneva.filePath}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                   >
-                    <FaExternalLinkAlt /> Open in Browser
-                  </LinkButton>
-                  
-                  <LinkButton 
-                    href={selectedSyneva.githubUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ marginLeft: '1rem' }}
-                  >
-                    <FaGithub /> View Source
+                    <FaExternalLinkAlt /> Open Chatbot
                   </LinkButton>
                 </motion.div>
               )}
@@ -580,20 +560,11 @@ const Chatbots = () => {
                   </VersionInfo>
                   
                   <LinkButton 
-                    href={selectedAbella.directUrl} 
+                    href={`${basePath}${selectedAbella.filePath}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                   >
-                    <FaExternalLinkAlt /> Open in Browser
-                  </LinkButton>
-                  
-                  <LinkButton 
-                    href={selectedAbella.githubUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ marginLeft: '1rem' }}
-                  >
-                    <FaGithub /> View Source
+                    <FaExternalLinkAlt /> Open Chatbot
                   </LinkButton>
                 </motion.div>
               )}
@@ -622,7 +593,7 @@ const Chatbots = () => {
             <p>SYNEVA represents our main chatbot implementation, featuring pattern matching, context awareness, and response generation capabilities. The latest version includes improvements in conversation flow and knowledge base.</p>
             
             <LinkButton 
-              href="https://kuberwastaken.github.io/MiniLMs/SYNEVA/SYNEVA.html" 
+              href={`${basePath}/SYNEVA/SYNEVA.html`} 
               target="_blank" 
               rel="noopener noreferrer"
             >
@@ -644,7 +615,7 @@ const Chatbots = () => {
             <p>15ABELLA is our ultra-compact chatbot implementation, designed to demonstrate efficient pattern matching in a minimal footprint. The latest POC-V2.3 version includes enhanced response capabilities while maintaining its small size.</p>
             
             <LinkButton 
-              href="https://kuberwastaken.github.io/MiniLMs/15ABELLA/POC-V2.3.html" 
+              href={`${basePath}/15ABELLA/POC-V2.3.html`} 
               target="_blank" 
               rel="noopener noreferrer"
             >
