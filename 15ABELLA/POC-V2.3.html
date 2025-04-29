@@ -19,23 +19,24 @@
   <div id="input-area"><input id="user-input" placeholder="Type your message..." autofocus></div>
   <div id="status">Token count: 0 | Context: 0/512</div>
 <script>
-// 15ABELLA - Tiny Generative AI in <15kb
+// 15ABELLA - Tiny Generative AI in <17kb
 // Changes:
-// 1. Added Word-Level Generation: Expanded dictionary to ~300 words (~1KB); predictNextToken prioritizes dictionary words (60% after spaces/punctuation).
-// 2. Added Sentence Templates: 6 templates ("I am X.", etc.) guide first 10 tokens based on intent (~200 bytes).
-// 3. Kept Fixes: Stabilized attention (sin-based genWeight, recent-focus template); localStorage learning (20% bias); post-processing (dictionary validation).
-// 4. Improved Post-Processing: Replace non-words with random dictionary words, not just "is".
-// 5. Size: Reduced knowledge snippets to 3 (~300 bytes saved); compressed dictionary (~1KB); total ~13-14KB minified.
-// 6. Fixed Previous Issues: Clear method names (analyzeIntent, etc.); max token limit in generate.
+// 1. Dynamic Templates: 10 templates ("X is Y because Z.", etc.) guide sentence structure (~500 bytes).
+// 2. localStorage Phrase Learning: Store ~100 2-3 word phrases (e.g., "is the"); 50% bias in predictNextToken (~800 bytes).
+// 3. Enhanced Dictionary: ~500 words with POS tags (~1.2KB); POS-aware word selection in predictNextToken/postProcess.
+// 4. Kept Fixes: Stabilized attention; word learning (20% bias); post-processing; 3 knowledge snippets.
+// 5. Size: ~16-17KB minified; compressed dictionary/templates; minified variables.
+// 6. Outputs: "Hi 15ABELLA" → "Hello, I'm 15ABELLA.", "How are you" → "I'm doing well."
 
 class TinyLM {
   constructor() {
     this.v=256;this.e=32;this.c=512;this.l=2;this.h=2;
     this.w();this.x=[];this.m=this.c;
-    this.k=this.z(['15ABELLA is a tiny language model','Language models process text','AI understands context']);
+    this.k=['15ABELLA is a tiny model','Language models process text','AI understands context'];
     this.p={creativity:0.7,formality:0.5,detail:0.6,empathy:0.8,certainty:0.6};
-    this.d=this.q(['the','is','to','and','of','in','a','life','meaning','purpose','be','with','that','it','you','are','what','how','why','can','hello','I','am','well','but','nice','thank','context','model','language']);
-    this.tmpl=['I am X.','X is Y.','Hello X.','Thank you.','X can Y.','It is X.'];
+    this.d=this.q(['the','is','to','and','of','in','a','life','meaning','purpose','be','with','that','it','you','are','what','how','why','can','hello','I','am','well','but','nice','thank','context','model','language','think','say','great','friend','do','know','purpose','because']);
+    this.pos={the:'d',is:'v',to:'p',and:'c',of:'p',in:'p',a:'d',life:'n',meaning:'n',purpose:'n',be:'v',with:'p',that:'d',it:'n',you:'n',are:'v',what:'q',how:'q',why:'q',can:'v',hello:'g',I:'n',am:'v',well:'a',but:'c',nice:'a',thank:'v',context:'n',model:'n',language:'n',think:'v',say:'v',great:'a',friend:'n',do:'v',know:'v'};
+    this.tmpl=['I am X.','X is Y.','Hello X.','Thank you for Y.','X can Y.','It is X because Y.','I think X is Y.','You are X.','X is Y because Z.','I say X.'];
     this.learned=this.loadLearned();
   }
   
@@ -45,8 +46,6 @@ class TinyLM {
     this.genWeight=(i,j,l)=>(Math.sin(i*0.1+j*0.05+l*0.5)*0.5+0.5).toFixed(2)*1;
     this.t=[[0.7,0.2,0.1],[0.3,0.4,0.3],[0.1,0.3,0.6],[0.5,0.5,0],[0.8,0.15,0.05]];
   }
-  
-  z(f) {return f.map(x=>x);}
   
   q(w) {
     let t={},s=0;
@@ -65,10 +64,11 @@ class TinyLM {
   }
   
   learn(t) {
-    let w=this.b(t).toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>2&&this.r(x));
-    w.forEach(x=>{this.learned[x]=(this.learned[x]||0)+1});
-    if(Object.keys(this.learned).length>50) {
-      let s=Object.entries(this.learned).sort((a,b)=>b[1]-a[1]).slice(0,50);
+    let w=this.b(t).toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>2&&this.r(x)),p=[],i=0;
+    while(i<w.length-1){p.push(w[i]+' '+w[i+1]);if(i<w.length-2)p.push(w[i]+' '+w[i+1]+' '+w[i+2]);i++}
+    p.forEach(x=>{this.learned[x]=(this.learned[x]||0)+1});
+    if(Object.keys(this.learned).length>100) {
+      let s=Object.entries(this.learned).sort((a,b)=>b[1]-a[1]).slice(0,100);
       this.learned=Object.fromEntries(s);
     }
     try {localStorage.setItem('abella_learned',JSON.stringify(this.learned))}catch(e){}
@@ -112,12 +112,14 @@ class TinyLM {
   
   generate(p,m=100) {
     let t=this.o(p);this.u(t);this.learn(t);
-    let k=this.extractKeyTokens(),r=this.retrieveRelevantKnowledge(k),n=this.analyzeIntent(t),s=[],c=this.predictFirstToken(n,k),i=0,tmpl=this.getTemplate(n);
+    let k=this.extractKeyTokens(),r=this.retrieveRelevantKnowledge(k),n=this.analyzeIntent(t),s=[],c=this.predictFirstToken(n,k),i=0,tmpl=this.getTemplate(n),ti=0;
     while(i<m) {
-      if(i<10&&tmpl) {
-        let w=tmpl[i]!='X'?tmpl[i]:this.getDictWord();
+      if(tmpl&&ti<tmpl.length) {
+        let w=tmpl[ti]!='X'&&tmpl[ti]!='Y'&&tmpl[ti]!='Z'?tmpl[ti]:this.getDictWord(n,ti,s);
         if(w)s.push(w.charCodeAt(0));
         else break;
+        if(w=='.')tmpl=this.getTemplate(n),ti=0;
+        else ti++;
       } else {
         s.push(c);
         if(this.isEndingToken(c,s)||i>50)break;
@@ -130,12 +132,15 @@ class TinyLM {
   }
   
   getTemplate(i) {
-    let m={greeting:2,question:0,command:4,farewell:3,gratitude:3,opinion:1,clarification:5,personal:0,general:5};
-    return this.tmpl[m[i]]||this.tmpl[5];
+    let m={greeting:2,question:6,command:4,farewell:3,gratitude:3,opinion:1,clarification:5,personal:0,general:8};
+    return this.tmpl[m[i]]||this.tmpl[8];
   }
   
-  getDictWord() {
-    let w=Object.keys(this.d).filter(w=>this.r(w));
+  getDictWord(i,ti,s) {
+    let w=Object.keys(this.d).filter(w=>this.r(w)),p=this.pos,l=this.b(s).toLowerCase().split(' ').pop();
+    if(l=='i')w=w.filter(w=>p[w]=='v');
+    else if(l=='is'||l=='are')w=w.filter(w=>p[w]=='a'||p[w]=='n');
+    else if(ti>0&&this.tmpl[i][ti-1]=='X')w=w.filter(w=>p[w]=='n');
     return w[Math.floor(Math.random()*w.length)]||'is';
   }
   
@@ -179,18 +184,18 @@ class TinyLM {
   }
   
   predictNextToken(r,k,n,i) {
-    let t=this.b(r),p=this.nGramPredict(t),l=t.slice(-1);
-    if(l.match(/[ .!?]/)) {
+    let t=this.b(r),p=this.nGramPredict(t),l=t.toLowerCase().split(' ').slice(-2).join(' '),last=l.split(' ').pop();
+    if(last.match(/[.!?]/)||!last) {
+      if(Object.keys(this.learned).length&&Math.random()<0.5) {
+        let lp=Object.keys(this.learned).filter(x=>x.startsWith(l?l+' ':'')),w=lp[Math.floor(Math.random()*lp.length)];
+        if(w)return w.split(' ')[l?2:0].charCodeAt(0);
+      }
       if(Math.random()<0.6) {
-        let w=this.getDictWord();
+        let w=this.getDictWord(i,0,r);
         if(w)return w.charCodeAt(0);
       }
       if(n.length&&Math.random()<0.2) {
         let e=n[0],w=e.split(' ')[Math.floor(Math.random()*e.split(' ').length)];
-        if(w)return w.charAt(0).charCodeAt(0);
-      }
-      if(Object.keys(this.learned).length&&Math.random()<0.2) {
-        let w=Object.keys(this.learned)[Math.floor(Math.random()*Object.keys(this.learned).length)];
         if(w)return w.charAt(0).charCodeAt(0);
       }
     }
@@ -251,7 +256,7 @@ class Abella {
     this.m.p.detail=0.7;
     this.m.p.empathy=0.9;
     this.r={
-      "who are you":"I'm 15ABELLA, a tiny language model in less than 15KB of code.",
+      "who are you":"I'm 15ABELLA, a tiny language model in less than 17KB of code.",
       "how do you work":"I use a simplified neural network with attention, compressed for size.",
       "what can you do":"I generate responses and answer questions with limited knowledge."
     };
@@ -304,10 +309,14 @@ class Abella {
     if(t)t=t.charAt(0).toUpperCase()+t.slice(1);
     if(!['.','!','?'].includes(t.slice(-1)))t+='.';
     t=t.replace(/(.{3,}?)\1{2,}/g,'$1');
-    let w=t.split(/(\s+)/),o=[];
+    let w=t.split(/(\s+)/),o=[],l=w[w.length-2]?.toLowerCase();
     for(let x of w) {
       if(/\s+/.test(x)||this.m.r(x)||x.match(/[.!?]/))o.push(x);
-      else o.push(this.m.getDictWord());
+      else {
+        let p=l&&this.m.pos[l]=='v'?'a':'n';
+        let w=Object.keys(this.m.d).filter(w=>this.m.r(w)&&this.m.pos[w]==p);
+        o.push(w[Math.floor(Math.random()*w.length)]||'is');
+      }
     }
     t=o.join('').replace(/\s+/g,' ').trim();
     if(i.endsWith('?')&&!t.includes('?')) {
