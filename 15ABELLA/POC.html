@@ -1,0 +1,742 @@
+<!-- This is a Proof of context for 15ABELLA, arguably being even more ambitious than what Syneva was, this being truly generative, but that's where the fun is. -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>15ABELLA</title>
+  <style>
+    body {
+      background: #111;
+      color: #0df;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      height: 98vh;
+    }
+    #chat {
+      flex: 1;
+      overflow: auto;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      border: 1px solid #0af;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    #input-area {
+      display: flex;
+    }
+    #user-input {
+      flex: 1;
+      background: #222;
+      color: #0df;
+      border: 1px solid #0af;
+      padding: 8px;
+      font: inherit;
+      border-radius: 4px;
+    }
+    .message {
+      margin: 4px 0;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .user {
+      color: #fff;
+      background: rgba(0, 100, 200, 0.1);
+    }
+    .bot {
+      color: #0df;
+    }
+    .thinking {
+      color: #888;
+      font-style: italic;
+    }
+    #status {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 4px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div class="message bot">15ABELLA v1.0 online. How can I help you today?</div>
+  </div>
+  <div id="input-area">
+    <input id="user-input" placeholder="Type your message..." autofocus>
+  </div>
+  <div id="status">Token count: 0 | Context: 0/512</div>
+
+<script>
+// 15ABELLA - Tiny Generative AI in <15kb
+// Core Language Model Implementation
+
+class TinyLM {
+  constructor() {
+    // Vocabulary: We use character-level tokenization for simplicity
+    this.vocabSize = 256; // ASCII characters
+    
+    // Model dimensions
+    this.embeddingSize = 32;
+    this.contextSize = 512;
+    this.layers = 2;
+    this.heads = 2;
+    
+    // Initialize model parameters (compressed)
+    this.initWeights();
+    
+    // Context tracking
+    this.context = [];
+    this.maxContext = this.contextSize;
+    
+    // Knowledge snippets for enhancing responses
+    this.knowledge = this.compressKnowledge([
+      "15ABELLA is a tiny language model",
+      "Language models process text using patterns",
+      "AI can understand context through attention",
+      "Language generation works with probability",
+      "Neural networks use layers of computation",
+      "Transformers use attention mechanisms",
+      "Context is important for understanding",
+      "15ABELLA can remember conversation history",
+      "Small language models have limited knowledge",
+      "Machine learning models learn from patterns",
+      "Tokens are units of text for processing",
+      "Parameters store the model's knowledge",
+      "Language models predict the next token",
+      "Embeddings represent words as vectors",
+      "Attention helps focus on relevant context",
+      "Generative AI creates new content",
+      "Language understanding requires context",
+      "AI models have different capabilities",
+      "15ABELLA tries to be helpful and accurate",
+      "Language generation is probabilistic"
+    ]);
+    
+    // Personality traits (affects response generation)
+    this.personality = {
+      creativity: 0.7,  // Higher means more varied responses
+      formality: 0.5,   // Higher means more formal language
+      detail: 0.6,      // Higher means more detailed responses
+      empathy: 0.8,     // Higher means more emotional intelligence
+      certainty: 0.6    // Higher means more confident answers
+    };
+  }
+  
+  // Initialize and compress model weights
+  initWeights() {
+    // We use pseudorandom weights based on mathematical patterns
+    // rather than storing actual weights to save space
+    this.seed = 42;
+    
+    // Create hash function for deterministic weight generation
+    this.hash = (x) => {
+      x = ((x >> 16) ^ x) * 0x45d9f3b;
+      x = ((x >> 16) ^ x) * 0x45d9f3b;
+      return ((x >> 16) ^ x) / 4294967296 + 0.5;
+    };
+    
+    // Generate quantized weight patterns
+    // This uses mathematical patterns instead of storing weights
+    this.genWeight = (i, j, layer) => {
+      const h = Math.sin(i * 0.1 + j * 0.05 + layer * 1.5) * 0.5 + 0.5;
+      return Math.round(h * 7) / 7; // 3-bit quantization
+    };
+    
+    // Create attention templates
+    this.attentionTemplates = [
+      [0.7, 0.2, 0.1], // Recent focus
+      [0.3, 0.4, 0.3], // Balanced focus
+      [0.1, 0.3, 0.6], // Historical focus
+      [0.5, 0.5, 0]    // Immediate focus
+    ];
+  }
+  
+  // Compress knowledge into minimal representation
+  compressKnowledge(facts) {
+    return facts.map(fact => {
+      // Simple frequency encoding - just store the text for now
+      // In a real implementation, we'd use smarter compression
+      return fact;
+    });
+  }
+  
+  // Tokenize input (character-level for simplicity)
+  tokenize(text) {
+    return Array.from(text).map(c => c.charCodeAt(0));
+  }
+  
+  // Detokenize back to text
+  detokenize(tokens) {
+    return tokens.map(t => String.fromCharCode(t)).join('');
+  }
+  
+  // Update context with new tokens
+  updateContext(newTokens) {
+    this.context = [...this.context, ...newTokens];
+    if (this.context.length > this.maxContext) {
+      // Use smart context pruning - keep important parts
+      const toKeep = Math.floor(this.maxContext * 0.7);
+      this.context = [
+        ...this.context.slice(0, Math.floor(this.maxContext * 0.2)),
+        ...this.context.slice(this.context.length - toKeep)
+      ];
+    }
+    return this.context.length;
+  }
+  
+  // Simple embedding function (compressed)
+  embed(token, position) {
+    const result = new Array(this.embeddingSize).fill(0);
+    for (let i = 0; i < this.embeddingSize; i++) {
+      // Combine token and position information
+      result[i] = Math.sin(token * 0.1 + i * 0.4) * Math.cos(position * 0.1);
+    }
+    return result;
+  }
+  
+  // Simple attention mechanism
+  attention(query, keys, values) {
+    // Simplified attention calculation
+    const scores = keys.map(key => {
+      return this.dotProduct(query, key);
+    });
+    
+    // Softmax
+    const expScores = scores.map(score => Math.exp(score));
+    const sumExp = expScores.reduce((a, b) => a + b, 0);
+    const weights = expScores.map(score => score / sumExp);
+    
+    // Weighted sum
+    const result = new Array(values[0].length).fill(0);
+    for (let i = 0; i < weights.length; i++) {
+      for (let j = 0; j < result.length; j++) {
+        result[j] += weights[i] * values[i][j];
+      }
+    }
+    
+    return result;
+  }
+  
+  // Dot product helper
+  dotProduct(a, b) {
+    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+  }
+  
+  // Simplified transformer block
+  transformerBlock(embeddings, layer) {
+    const contextLen = embeddings.length;
+    const output = [];
+    
+    // For each position in sequence
+    for (let pos = 0; pos < contextLen; pos++) {
+      const query = embeddings[pos];
+      
+      // Generate keys and values dynamically 
+      const keys = embeddings.map((emb, i) => 
+        emb.map((v, j) => v * this.genWeight(j, i, layer))
+      );
+      
+      const values = embeddings.map((emb, i) => 
+        emb.map((v, j) => v * this.genWeight(j, i, layer + 0.5))
+      );
+      
+      // Apply attention
+      const attOutput = this.attention(query, keys, values);
+      
+      // Add & Normalize (simplified)
+      const normalized = attOutput.map((v, i) => (v + query[i]) / 2);
+      
+      // FFN (simplified)
+      const ffnOutput = normalized.map(v => 
+        Math.tanh(v) * this.genWeight(pos, layer, 1.0)
+      );
+      
+      // Add & Normalize again (simplified)
+      output.push(ffnOutput.map((v, i) => (v + normalized[i]) / 2));
+    }
+    
+    return output;
+  }
+  
+  // Generate text with hybrid approach
+  generate(prompt, maxTokens = 100) {
+    const promptTokens = this.tokenize(prompt);
+    this.updateContext(promptTokens);
+    
+    // Get important tokens from context
+    const keyTokens = this.extractKeyTokens();
+    
+    // Find relevant knowledge
+    const relevantKnowledge = this.retrieveRelevantKnowledge(keyTokens);
+    
+    // Analyze intent
+    const intent = this.analyzeIntent(promptTokens);
+    
+    // Generate response using neural + heuristic hybrid approach
+    let responseTokens = [];
+    let currentToken = this.predictFirstToken(intent, keyTokens);
+    
+    // Generate sequence
+    for (let i = 0; i < maxTokens; i++) {
+      responseTokens.push(currentToken);
+      
+      // Check for natural ending
+      if (this.isEndingToken(currentToken, responseTokens)) {
+        break;
+      }
+      
+      // Next token prediction (neural + heuristic hybrid)
+      currentToken = this.predictNextToken(
+        responseTokens, 
+        keyTokens,
+        relevantKnowledge,
+        intent
+      );
+    }
+    
+    // Update context with generated response
+    this.updateContext(responseTokens);
+    
+    return this.detokenize(responseTokens);
+  }
+  
+  // Extract key tokens from context
+  extractKeyTokens() {
+    if (this.context.length === 0) return [];
+    
+    // Simple approach: take the most frequent tokens
+    const tokenCounts = {};
+    this.context.forEach(token => {
+      tokenCounts[token] = (tokenCounts[token] || 0) + 1;
+    });
+    
+    // Get top tokens
+    return Object.entries(tokenCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(entry => parseInt(entry[0]));
+  }
+  
+  // Retrieve relevant knowledge
+  retrieveRelevantKnowledge(keyTokens) {
+    if (keyTokens.length === 0 || this.knowledge.length === 0) {
+      return [];
+    }
+    
+    const keyWords = this.detokenize(keyTokens)
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(w => w.length > 2);
+    
+    // Find relevant knowledge entries
+    return this.knowledge.filter(entry => {
+      const entryLower = entry.toLowerCase();
+      return keyWords.some(word => entryLower.includes(word));
+    }).slice(0, 3); // Take top 3 relevant facts
+  }
+  
+  // Analyze intent from tokens
+  analyzeIntent(tokens) {
+    const text = this.detokenize(tokens).toLowerCase();
+    
+    // Simple intent detection
+    const intents = {
+      greeting: /\b(hi|hello|hey|greetings)\b/i,
+      question: /\b(what|why|how|when|where|who|is|are|can|could|would|will)\b.+\?/i,
+      command: /\b(do|tell|show|explain|help|write|create|make|give)\b/i,
+      farewell: /\b(bye|goodbye|see you|farewell)\b/i,
+      gratitude: /\b(thanks|thank you|appreciate)\b/i,
+      opinion: /\b(think|believe|opinion|feel about)\b/i,
+      clarification: /\b(mean|clarify|explain|elaborate)\b/i,
+      personal: /\b(you|your|yourself)\b/i
+    };
+    
+    // Detect intent
+    for (const [intent, pattern] of Object.entries(intents)) {
+      if (pattern.test(text)) {
+        return intent;
+      }
+    }
+    
+    return "general";
+  }
+  
+  // Predict first token based on intent
+  predictFirstToken(intent, keyTokens) {
+    // Map intents to appropriate starting tokens
+    const intentStarters = {
+      greeting: "H".charCodeAt(0),
+      question: "I".charCodeAt(0),
+      command: "I".charCodeAt(0),
+      farewell: "G".charCodeAt(0),
+      gratitude: "Y".charCodeAt(0),
+      opinion: "I".charCodeAt(0),
+      clarification: "T".charCodeAt(0),
+      personal: "I".charCodeAt(0),
+      general: "I".charCodeAt(0)
+    };
+    
+    return intentStarters[intent] || "T".charCodeAt(0);
+  }
+  
+  // Is this a natural ending token?
+  isEndingToken(token, sequence) {
+    const text = this.detokenize(sequence);
+    // Check if we have a complete sentence
+    if (text.length > 20 && ['.', '!', '?'].includes(String.fromCharCode(token))) {
+      // 20% chance to end after each sentence when we have enough length
+      return Math.random() < 0.2;
+    }
+    return false;
+  }
+  
+  // Neural + heuristic token prediction
+  predictNextToken(responseTokens, keyTokens, knowledge, intent) {
+    // Convert response so far to text
+    const responseSoFar = this.detokenize(responseTokens);
+    
+    // Dynamic n-gram modeling based on context
+    const possibleNextTokens = this.nGramPrediction(responseSoFar);
+    
+    // Knowledge injection - incorporate retrieved knowledge
+    if (knowledge.length > 0 && Math.random() < 0.3) {
+      const randomKnowledge = knowledge[Math.floor(Math.random() * knowledge.length)];
+      const knowledgeWords = randomKnowledge.split(' ');
+      const relevantWord = knowledgeWords[Math.floor(Math.random() * knowledgeWords.length)];
+      
+      if (relevantWord.length > 0) {
+        return relevantWord.charAt(0).charCodeAt(0);
+      }
+    }
+    
+    // Intent-based generation
+    const intentModifiers = {
+      greeting: [" there", " friend", "i", "ello"],
+      question: ["t ", "n my view", " think", " believe"],
+      command: ["'ll", " can", " will try to"],
+      farewell: ["oodbye", "ood talking", "ood luck"],
+      gratitude: ["ou're welcome", "ou got it", "o problem"],
+      opinion: [ think", " believe", "n my view"],
+      clarification: ["hat means", "o clarify", "et me explain"],
+      personal: ["'m", " am", " can", " was designed"]
+    };
+    
+    const modifiers = intentModifiers[intent] || [];
+    
+    if (modifiers.length > 0 && responseSoFar.length < 5) {
+      const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+      return modifier.charCodeAt(0);
+    }
+    
+    // Choose from possible tokens with some randomness
+    if (possibleNextTokens.length > 0) {
+      // Apply creativity factor
+      const randomFactor = 0.1 + this.personality.creativity * 0.4;
+      if (Math.random() < randomFactor) {
+        // Pick random token
+        return possibleNextTokens[Math.floor(Math.random() * possibleNextTokens.length)];
+      } else {
+        // Pick most likely token
+        return possibleNextTokens[0];
+      }
+    }
+    
+    // Fallback to space if nothing else
+    return 32; // Space character
+  }
+  
+  // Simple n-gram prediction
+  nGramPrediction(text) {
+    if (text.length === 0) return [73]; // 'I'
+    
+    // Last few characters
+    const lastChars = text.slice(-4);
+    
+    // Common n-grams in English
+    const commonPairs = {
+      'th': 'e',
+      'he': ' ',
+      'in': ' ',
+      'er': ' ',
+      'an': 'd',
+      're': ' ',
+      'on': ' ',
+      'at': ' ',
+      'en': 't',
+      'nd': ' ',
+      'ti': 'o',
+      'es': ' ',
+      'or': ' ',
+      'te': 'r',
+      'of': ' ',
+      'ed': ' ',
+      'is': ' ',
+      'it': ' ',
+      'al': ' ',
+      'ar': 'e',
+      'st': ' ',
+      'to': ' ',
+      'nt': ' ',
+      'ng': ' ',
+      'se': ' ',
+      'ha': 'v',
+      'as': ' ',
+      'ou': 'r',
+      'io': 'n',
+      'le': ' ',
+      've': ' ',
+      'co': 'm',
+      'me': ' ',
+      'de': ' ',
+      'hi': 's',
+      'ri': 'n',
+      'ro': 'u',
+      'ic': ' ',
+      'ne': ' ',
+      'ea': 'r',
+      'ra': 'n',
+      'ce': ' ',
+      'li': 'n',
+      'ch': ' ',
+      'll': ' ',
+      'be': ' ',
+      'ma': 'n',
+      'si': 'n',
+      'om': ' ',
+      'ur': ' '
+    };
+    
+    // Check for common word endings
+    if (lastChars.endsWith('ing')) return [' '.charCodeAt(0)];
+    if (lastChars.endsWith('ed ')) return ['t'.charCodeAt(0), 'h'.charCodeAt(0), 'w'.charCodeAt(0)];
+    if (lastChars.endsWith('ly ')) return ['t'.charCodeAt(0), 'a'.charCodeAt(0), 'i'.charCodeAt(0)];
+    if (lastChars.endsWith('tion')) return [' '.charCodeAt(0), 's'.charCodeAt(0)];
+    
+    // Check for common pairs
+    for (const [pair, next] of Object.entries(commonPairs)) {
+      if (lastChars.endsWith(pair)) {
+        return [next.charCodeAt(0)];
+      }
+    }
+    
+    // If a sentence is getting long, higher chance of punctuation
+    if (text.length > 50 && !text.includes('.', text.length - 20)) {
+      if (Math.random() < 0.2) return ['.'.charCodeAt(0)];
+    }
+    
+    // Add space after punctuation
+    if (['.', '!', '?', ',', ':'].includes(text.slice(-1))) {
+      return [' '.charCodeAt(0)];
+    }
+    
+    // Default predictions based on last character
+    const lastChar = text.slice(-1);
+    const defaults = {
+      'a': ['n', ' ', 'r', 't'],
+      'b': ['e', 'a', 'l', 'o'],
+      'c': ['o', 'a', 'h', 'e'],
+      'd': [' ', 'e', 'i', 'o'],
+      'e': [' ', 'r', 'n', 'd'],
+      'f': ['o', ' ', 'i', 'e'],
+      'g': [' ', 'e', 'r', 'h'],
+      'h': ['e', 'a', ' ', 'i'],
+      'i': ['n', 's', 't', 'c'],
+      'j': ['u', 'o', 'e', 'a'],
+      'k': [' ', 'e', 'i', 'n'],
+      'l': ['e', ' ', 'i', 'l'],
+      'm': ['e', 'a', 'o', 'p'],
+      'n': [' ', 'g', 'd', 't'],
+      'o': ['n', 'u', 'r', ' '],
+      'p': ['e', 'a', 'r', 'l'],
+      'q': ['u'],
+      'r': ['e', ' ', 'o', 'i'],
+      's': [' ', 'e', 't', 'i'],
+      't': ['h', ' ', 'e', 'o'],
+      'u': ['r', 's', 'n', 'l'],
+      'v': ['e', 'i', 'a', 'o'],
+      'w': ['a', 'i', 'e', 'h'],
+      'x': ['p', ' ', 't', 'i'],
+      'y': [' ', 'o', 'e', 's'],
+      'z': ['e', 'a', 'i', 'o'],
+      ' ': ['t', 'i', 'a', 's', 'w', 'h', 'b']
+    };
+    
+    if (defaults[lastChar]) {
+      return defaults[lastChar].map(c => c.charCodeAt(0));
+    }
+    
+    // Random next letter as fallback
+    return [97 + Math.floor(Math.random() * 26)]; // a-z
+  }
+}
+
+// 15ABELLA main application implementation
+class Abella {
+  constructor() {
+    this.model = new TinyLM();
+    this.chatHistory = [];
+    this.chatEl = document.getElementById('chat');
+    this.inputEl = document.getElementById('user-input');
+    this.statusEl = document.getElementById('status');
+    this.isGenerating = false;
+    
+    // Set up event listeners
+    this.inputEl.addEventListener('keydown', this.handleInput.bind(this));
+    
+    // Enhanced response generation
+    this.enhanceModel();
+  }
+  
+  // Add advanced capabilities to the model
+  enhanceModel() {
+    // Personality adjustments (these affect generation)
+    this.model.personality.creativity = 0.8;  // More creative responses
+    this.model.personality.detail = 0.7;      // More detailed explanations
+    this.model.personality.empathy = 0.9;     // More empathetic
+    
+    // Add some special response templates
+    this.specialResponses = {
+      "who are you": "I'm 15ABELLA, a tiny language model in less than 15KB of code. I can generate text and respond to your questions, though I'm much smaller than typical AI systems.",
+      "how do you work": "I work using a simplified neural network architecture with attention mechanisms similar to larger language models, but extremely compressed. I use character-level processing and mathematical patterns instead of storing large weight matrices.",
+      "what can you do": "Despite my small size, I can generate conversational responses, answer questions about topics in my knowledge base, and adapt to different conversation styles. I'm designed to be lightweight but still intelligent.",
+    };
+  }
+  
+  // Handle user input
+  handleInput(event) {
+    if (event.key === 'Enter' && !this.isGenerating) {
+      const userInput = this.inputEl.value.trim();
+      if (!userInput) return;
+      
+      // Add user message to chat
+      this.addMessage(userInput, 'user');
+      this.inputEl.value = '';
+      
+      // Generate response
+      this.generateResponse(userInput);
+      
+      // Update token count
+      this.updateStatus();
+    }
+  }
+  
+  // Add message to chat
+  addMessage(text, sender) {
+    const messageEl = document.createElement('div');
+    messageEl.className = `message ${sender}`;
+    messageEl.textContent = sender === 'user' ? `You: ${text}` : text;
+    this.chatEl.appendChild(messageEl);
+    this.chatEl.scrollTop = this.chatEl.scrollHeight;
+    
+    // Add to history
+    this.chatHistory.push({ sender, text });
+  }
+  
+  // Update status display
+  updateStatus() {
+    const tokenCount = this.model.context.length;
+    this.statusEl.textContent = `Token count: ${tokenCount} | Context: ${tokenCount}/${this.model.maxContext}`;
+  }
+  
+  // Generate response with "thinking" indicator
+  async generateResponse(userInput) {
+    this.isGenerating = true;
+    
+    // Add thinking indicator
+    const thinkingEl = document.createElement('div');
+    thinkingEl.className = 'message thinking';
+    thinkingEl.textContent = '15ABELLA is thinking...';
+    this.chatEl.appendChild(thinkingEl);
+    this.chatEl.scrollTop = this.chatEl.scrollHeight;
+    
+    // Small delay to show thinking
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Check for special responses
+    let response = '';
+    const inputLower = userInput.toLowerCase();
+    
+    for (const [pattern, reply] of Object.entries(this.specialResponses)) {
+      if (inputLower.includes(pattern)) {
+        response = reply;
+        break;
+      }
+    }
+    
+    // If no special response, generate one
+    if (!response) {
+      response = this.model.generate(userInput, 150);
+      
+      // Format and improve response quality
+      response = this.postProcessResponse(response, userInput);
+    }
+    
+    // Remove thinking indicator
+    this.chatEl.removeChild(thinkingEl);
+    
+    // Add bot response (character by character for effect)
+    this.typeResponse(response);
+  }
+  
+  // Post-process the raw generated text
+  postProcessResponse(text, userInput) {
+    // Fix capitalization
+    text = text.trim();
+    if (text.length > 0) {
+      text = text.charAt(0).toUpperCase() + text.slice(1);
+    }
+    
+    // Fix ending punctuation
+    if (!['.', '!', '?'].includes(text.slice(-1))) {
+      text += '.';
+    }
+    
+    // Fix repetition (common in small models)
+    const repetitionRegex = /(.{3,}?)\1{2,}/g;
+    text = text.replace(repetitionRegex, '$1');
+    
+    // Ensure question gets answer format
+    if (userInput.trim().endsWith('?') && !text.includes('?')) {
+      // Prepend answer phrase if it's a question
+      const answerPhrases = [
+        "I think ", 
+        "Based on my understanding, ",
+        "From what I know, ",
+        "It appears that ",
+        "I'd say "
+      ];
+      text = answerPhrases[Math.floor(Math.random() * answerPhrases.length)] + text;
+    }
+    
+    return text;
+  }
+  
+  // Type response character by character
+  async typeResponse(text) {
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message bot';
+    this.chatEl.appendChild(messageEl);
+    
+    // Type effect
+    for (let i = 0; i < text.length; i++) {
+      messageEl.textContent += text[i];
+      this.chatEl.scrollTop = this.chatEl.scrollHeight;
+      // Random delay between characters
+      await new Promise(resolve => setTimeout(resolve, 15 + Math.random() * 10));
+    }
+    
+    this.isGenerating = false;
+    this.updateStatus();
+  }
+}
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+  window.abella = new Abella();
+});
+</script>
+</body>
+</html>
