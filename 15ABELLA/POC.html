@@ -62,7 +62,7 @@
 </head>
 <body>
   <div id="chat">
-    <div class="message bot">15ABELLA v1.0 online. How can I help you today?</div>
+    <div class="message bot">15ABELLA v0.0 online. How can I help you today?</div>
   </div>
   <div id="input-area">
     <input id="user-input" placeholder="Type your message..." autofocus>
@@ -93,26 +93,26 @@ class TinyLM {
     
     // Knowledge snippets for enhancing responses
     this.knowledge = this.compressKnowledge([
-      "15ABELLA is a tiny language model",
-      "Language models process text using patterns",
-      "AI can understand context through attention",
-      "Language generation works with probability",
-      "Neural networks use layers of computation",
-      "Transformers use attention mechanisms",
-      "Context is important for understanding",
-      "15ABELLA can remember conversation history",
-      "Small language models have limited knowledge",
-      "Machine learning models learn from patterns",
-      "Tokens are units of text for processing",
-      "Parameters store the model's knowledge",
-      "Language models predict the next token",
-      "Embeddings represent words as vectors",
-      "Attention helps focus on relevant context",
-      "Generative AI creates new content",
-      "Language understanding requires context",
-      "AI models have different capabilities",
-      "15ABELLA tries to be helpful and accurate",
-      "Language generation is probabilistic"
+      '15ABELLA is a tiny language model',
+      'Language models process text using patterns',
+      'AI can understand context through attention',
+      'Language generation works with probability',
+      'Neural networks use layers of computation',
+      'Transformers use attention mechanisms',
+      'Context is important for understanding',
+      '15ABELLA can remember conversation history',
+      'Small language models have limited knowledge',
+      'Machine learning models learn from patterns',
+      'Tokens are units of text for processing',
+      'Parameters store the model\'s knowledge',
+      'Language models predict the next token',
+      'Embeddings represent words as vectors',
+      'Attention helps focus on relevant context',
+      'Generative AI creates new content',
+      'Language understanding requires context',
+      'AI models have different capabilities',
+      '15ABELLA tries to be helpful and accurate',
+      'Language generation is probabilistic'
     ]);
     
     // Personality traits (affects response generation)
@@ -414,12 +414,12 @@ class TinyLM {
     
     // Intent-based generation
     const intentModifiers = {
-      greeting: [" there", " friend", "i", "ello"],
+      greeting: [" there", " friend", "hi", "ello"],
       question: ["t ", "n my view", " think", " believe"],
       command: ["'ll", " can", " will try to"],
       farewell: ["oodbye", "ood talking", "ood luck"],
       gratitude: ["ou're welcome", "ou got it", "o problem"],
-      opinion: [ think", " believe", "n my view"],
+      opinion: ["think", " believe", "n my view"],
       clarification: ["hat means", "o clarify", "et me explain"],
       personal: ["'m", " am", " can", " was designed"]
     };
