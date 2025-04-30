@@ -13,9 +13,6 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Checkout 🛎️
@@ -40,14 +37,14 @@ jobs:
         env:
           CI: false
 
-      - name: Setup Pages 📄
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact ⬆️
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/build
+      - name: Create .nojekyll file 🚫
+        run: touch docs/build/.nojekyll
 
       - name: Deploy to GitHub Pages 🚀
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build
+          branch: gh-pages
+          clean: true
+          clean-exclude: |
+            .nojekyll
