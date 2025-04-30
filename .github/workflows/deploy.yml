@@ -5,9 +5,16 @@ on:
     branches:
       - main
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    concurrency: ci-${{ github.ref }} # Ensures only one concurrent deployment
 
     steps:
       - name: Checkout repository
@@ -37,3 +44,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/build
+          # Enable .nojekyll file to bypass Jekyll processing
+          enable_jekyll: false
