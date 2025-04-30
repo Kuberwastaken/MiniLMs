@@ -13,7 +13,9 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    concurrency: ci-${{ github.ref }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Checkout 🛎️
@@ -36,19 +38,16 @@ jobs:
           cd docs
           npm run build
         env:
-          CI: false # Prevents treating warnings as errors
+          CI: false
 
       - name: Setup Pages 📄
         uses: actions/configure-pages@v4
 
-      - name: Create .nojekyll file 🚫
-        run: |
-          cd docs/build
-          touch .nojekyll
+      - name: Upload artifact ⬆️
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build
 
       - name: Deploy to GitHub Pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: docs/build
-          branch: gh-pages
-          clean: true
+        id: deployment
+        uses: actions/deploy-pages@v4
