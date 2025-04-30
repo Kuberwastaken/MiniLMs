@@ -1,11 +1,10 @@
-name: Deploy to GitHub Pages
+name: Deploy React App to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: write
   pages: write
@@ -14,35 +13,42 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    concurrency: ci-${{ github.ref }} # Ensures only one concurrent deployment
-
+    concurrency: ci-${{ github.ref }}
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js ⚙️
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: docs/package.json
+          cache-dependency-path: docs/package-lock.json
 
-      - name: Install dependencies
+      - name: Install Dependencies 📦
         run: |
           cd docs
-          npm ci
+          npm ci --legacy-peer-deps
 
-      - name: Build site
+      - name: Build React App 🔧
         run: |
           cd docs
           npm run build
         env:
-          CI: false # This prevents treating warnings as errors
+          CI: false # Prevents treating warnings as errors
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Setup Pages 📄
+        uses: actions/configure-pages@v4
+
+      - name: Create .nojekyll file 🚫
+        run: |
+          cd docs/build
+          touch .nojekyll
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/build
-          # Enable .nojekyll file to bypass Jekyll processing
-          enable_jekyll: false
+          folder: docs/build
+          branch: gh-pages
+          clean: true
