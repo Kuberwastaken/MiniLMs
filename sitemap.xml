@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://minilms.kuber.studio/</loc>
+    <lastmod>2024-05-17</lastmod> {/* Replace with actual last modified date or remove if auto-generating */}
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://minilms.kuber.studio/#/chatbots</loc> {/* Note the hash for HashRouter */}
+    <lastmod>2024-05-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://minilms.kuber.studio/#/study-materials</loc> {/* Note the hash for HashRouter */}
+    <lastmod>2024-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://minilms.kuber.studio/#/devlogs</loc> {/* Note the hash for HashRouter */}
+    <lastmod>2024-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  {/* 
+    For dynamic content, you would ideally generate these URLs. 
+    Example for a specific chatbot (if you wanted to list them all):
+    <url>
+      <loc>https://minilms.kuber.studio/#/chatbot/syneva</loc>
+      <lastmod>2024-05-17</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.5</priority>
+    </url>
+    Example for a specific study material:
+    <url>
+      <loc>https://minilms.kuber.studio/#/study-material/STUDY-RESOURCES/path/to/material.md</loc>
+      <lastmod>2024-05-17</lastmod>
+      <changefreq>yearly</changefreq>
+      <priority>0.4</priority>
+    </url>
+  */}
+</urlset> 
