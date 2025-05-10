@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+*{margin:0;font:12px monospace}
+body{background:#000;color:#0f0;padding:5px;display:flex;flex-direction:column;min-height:100vh}
+#o{flex:1;overflow:auto}
+#i{background:#111;border:1px solid #0f0;color:#0f0;padding:3px;width:100%;box-sizing:border-box}
+</style>
+<body>
+<div id="o"></div>
+<input id="i" autofocus>
+<script>
+const C={v:128,d:8,m:16,g:8}, // vocab, dim, context, generate length
+R=[['hi,hello,hey','Hey!'],['bye,exit','Bye!'],['what,how','What?'],['good,great','Cool!'],['sorry,sad','Sorry.'],['no,not','Nope.'],['yes,yeah','Yeah!'],['thanks,thank','Thanks!'],['love,like','Nice!'],['','Huh?']], // Fallbacks
+A=()=>'    '+' SSSSS  Y   Y  N   N  EEEEE  V   V     A    \n    S      Y   Y  NN  N  E      V   V    A A   \n    SSSSS   Y Y   N N N  EEEE   V   V   AAAAA  \n        S   Y    N  NN  E      V V    A   A  \n    SSSSS   Y    N   N  EEEEE    V     A   A  '.split('\n').join('\n'), // ASCII
+S=localStorage.getItem('s')?JSON.parse(localStorage.getItem('s')):{}; // Learned data
+class T {
+  constructor() {
+    this.c=[];this.s=42;
+    this.E=this.g(C.v,C.d); // Embeddings
+    this.Q=this.g(C.d,C.d);this.K=this.g(C.d,C.d);this.V=this.g(C.d,C.d);this.O=this.g(C.d,C.d); // Attention
+    this.F1=this.g(C.d,C.d*2);this.F2=this.g(C.d*2,C.d); // Feedforward
+    this.L=this.g(C.d,C.v); // Output
+    this.B=Array(C.v).fill(0); // Output biases
+  }
+  g(r,c) { // Generate 2-bit weights
+    return Array(r).fill().map(()=>Array(c).fill().map(()=>{this.s=(9301*this.s+49297)%233280;return[-0.5,0.5][Math.floor(this.s/233280*2)]}));
+  }
+  e(t) { // Encode text to tokens
+    return t.slice(-C.m).split('').map(c=>c.charCodeAt(0)%C.v);
+  }
+  p(i,j) { // Positional encoding
+    return Math.sin(i/(10000**(j/C.d)));
+  }
+  m(a,b) { // Matrix multiply
+    let r=Array(a.length).fill().map(()=>Array(b[0].length).fill(0));
+    for(let i=0;i<a.length;i++)for(let j=0;j<b[0].length;j++)for(let k=0;k<a[0].length;k++)r[i][j]+=a[i][k]*b[k][j];
+    return r;
+  }
+  s(x) { // Softmax
+    let m=Math.max(...x),e=x.map(v=>Math.exp(v-m)),t=e.reduce((a,b)=>a+b,0);
+    return e.map(v=>v/t);
+  }
+  f(x) { // Transformer forward
+    let n=x.length,e=x.map((t,i)=>this.E[t].map((v,j)=>v+this.p(i,j))), // Embed + pos
+    q=this.m(e,this.Q),k=this.m(e,this.K),v=this.m(e,this.V),a=Array(n).fill().map(()=>Array(n).fill(0));
+    for(let i=0;i<n;i++)for(let j=0;j<=i;j++){let s=0;for(let l=0;l<C.d;l++)s+=q[i][l]*k[j][l];a[i][j]=s/Math.sqrt(C.d);}
+    let o=this.m(a.map(r=>this.s(r)),v),h=this.m(o,this.O).map((r,i)=>r.map((v,j)=>v+e[i][j])), // Attention + residual
+    ff=this.m(h,this.F1).map(r=>r.map(v=>Math.max(0,v))), // Feedforward
+    fo=this.m(ff,this.F2).map((r,i)=>r.map((v,j)=>v+h[i][j])),l=this.m([fo[n-1]],this.L)[0]; // Output
+    for(let i=0;i<C.v;i++)l[i]+=this.B[i]; // Apply biases
+    return l;
+  }
+  l(t) { // Keyword-based learning
+    let w=t.toLowerCase().split(/\s+/),s=R.concat(Object.entries(S).map(([k,v])=>[k,v[0]])),m=[],f=0;
+    for(let[r,v]of s){let c=0,d=r.split(',');for(let t of w)for(let x of d)t.includes(x)&&(c+=S[r]?.[1]||1);m.push([c,v]);f=Math.max(f,c);}
+    if(f<1&&w.length>1){let k=w.join(','),v=`${w[0]}?`;S[k]=[v,1];localStorage.setItem('s',JSON.stringify(S));m.push([1,v]);}
+    m.sort((a,b)=>b[0]-a[0]);let r=m[0][1];
+    if(f>0){let k=m[0][1].split(',')[0];S[k]=[r,(S[k]?.[1]||1)+1];localStorage.setItem('s',JSON.stringify(S));}
+    return r;
+  }
+  g(t) { // Generate text
+    let x=this.e(t),o='',p=0;
+    for(let i=0;i<C.g;i++){
+      let l=this.f(x),pr=this.s(l),tk=pr.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).slice(0,5)[Math.floor(Math.random()*5)].i;
+      o+=String.fromCharCode(tk);x=[...x,tk].slice(-C.m);
+      p=Math.max(p,pr[tk]);if(tk===10||p<0.05)break;
+    }
+    let r=o.trim();if(!r||p<0.05){r=this.l(t);let k=r.charCodeAt(0)%C.v;this.B[k]+=0.1;} // Learn bias
+    return r;
+  }
+  t() { // Initial UI
+    return `v15.5\n\n<span class=h>${A()}</span>\n\n<span class=s>SYNEVA: Hi!</span>`;
+  }
+}
+let t=new T;o.innerHTML=t.t();onkeydown=e=>{if(e.key=='Enter'&&i.value.trim()){o.innerHTML+=`\n\n<span class=y>YOU: ${i.value.trim()}</span>\n<span class=s>SYNEVA: ${t.g(i.value.trim())}</span>`;i.value='';o.scrollTop=1e9;}};
+</script>
+</body>
+</html>

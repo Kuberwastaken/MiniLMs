@@ -1,0 +1,239 @@
+<!DOCTYPE html><html><meta charset=utf-8><title>SYNEVA</title><style>*{margin:0;font:13px/1.3 monospace}body{background:#000;color:#0f0;padding:8px;display:flex;flex-direction:column;min-height:100vh}#o{flex:1;overflow:auto;padding:5px;white-space:pre-wrap}#i{background:#111;border:1px solid #0f0;color:#0f0;padding:5px;margin-top:5px;outline:0;width:calc(100% - 12px)}::selection{background:#0f0;color:#000}.y{color:#66f}.s{color:#0f0}.h{color:#0a0}.c{opacity:.7}</style><body><div id=o></div><input id=i placeholder="Say something..." autofocus><script>class SYNEVA {
+    constructor(){
+        this.M=localStorage;
+        this.D=this.M.d?JSON.parse(this.M.d):{n:{},w:{},c:[],b:{}};
+        this.C=[];
+        this.logo=()=>"    SSSSS  Y   Y  N   N  EEEEE  V   V     A    \n    S      Y   Y  NN  N  E      V   V    A A   \n    SSSSS   Y Y   N N N  EEEE   V   V   AAAAA  \n        S    Y    N  NN  E       V V    A   A  \n    SSSSS    Y    N   N  EEEEE    V     A   A  ";
+    }
+
+    t(s) {
+        return s?.toLowerCase().replace(/[^\w\s?']/g,' ').trim().split(/\s+/).filter(Boolean)||[];
+    }
+    
+    n(w,n=3) {
+        let r=[];
+        for(let i=0;i<w.length;i++)
+            for(let j=1;j<=n&&i+j<=w.length;j++)
+                r.push(w.slice(i,i+j));
+        return r;
+    }
+    
+    // Learn patterns from input text
+    l(i){
+        let w=this.t(i);
+        if(!w.length)return;
+        
+        // Build bigram model
+        for(let j=0;j<w.length-1;j++){
+            let a=w[j];
+            let b=w[j+1];
+            if(!this.D.b[a])this.D.b[a]=[];
+            if(!this.D.b[a].includes(b))this.D.b[a].push(b);
+        }
+        
+        // Build word frequency model
+        w.forEach(x=>{
+            this.D.w[x]=this.D.w[x]||0;
+            this.D.w[x]++;
+        });
+        
+        // Store conversation history
+        this.D.c.push(i);
+        if(this.D.c.length>40)this.D.c.shift();
+        
+        // Save to localStorage
+        this.save();
+    }
+    
+    // Save memory to localStorage
+    save(){
+        // Prune if getting too large
+        if(JSON.stringify(this.D).length>2500)this.prune();
+        this.M.d=JSON.stringify(this.D);
+    }
+    
+    // Prune less useful data
+    prune(){
+        // Keep only common words
+        let ws=Object.keys(this.D.w).sort((a,b)=>this.D.w[b]-this.D.w[a]).slice(0,100);
+        let nw={};
+        ws.forEach(w=>nw[w]=this.D.w[w]);
+        this.D.w=nw;
+        
+        // Prune bigram model
+        let nb={};
+        ws.forEach(w=>{
+            if(this.D.b[w]){
+                nb[w]=this.D.b[w].filter(x=>ws.includes(x));
+                if(!nb[w].length)delete nb[w];
+            }
+        });
+        this.D.b=nb;
+        
+        // Keep recent conversation context
+        this.D.c=this.D.c.slice(-20);
+    }
+    
+    // Find seed words based on input
+    seeds(i){
+        let w=this.t(i);
+        let r=[];
+        
+        // Add high frequency words from input
+        w.forEach(x=>{
+            if(this.D.b[x]&&this.D.b[x].length>0)
+                r.push(x);
+        });
+        
+        // Add random high-frequency words if needed
+        if(r.length<2){
+            let ws=Object.keys(this.D.w).filter(w=>this.D.b[w]&&this.D.b[w].length>0);
+            if(ws.length){
+                for(let i=0;r.length<3&&i<5;i++)
+                    r.push(ws[Math.floor(Math.random()*ws.length)]);
+            }
+        }
+        
+        return [...new Set(r)]; // Remove duplicates
+    }
+    
+    // Generate text using Markov chain
+    gen(seed,min=3,max=15){
+        let next=word=>{
+            if(!this.D.b[word]||!this.D.b[word].length)
+                return null;
+            return this.D.b[word][Math.floor(Math.random()*this.D.b[word].length)];
+        };
+        
+        // Try multiple seeds if provided seed doesn't work
+        let curr=seed;
+        if(!this.D.b[curr]){
+            let keys=Object.keys(this.D.b);
+            if(!keys.length)return "I'm still learning how to generate text.";
+            curr=keys[Math.floor(Math.random()*keys.length)];
+        }
+        
+        // Generate the sequence
+        let result=[curr];
+        let length=min+Math.floor(Math.random()*(max-min));
+        
+        for(let i=0;i<length;i++){
+            let n=next(curr);
+            if(!n)break;
+            result.push(n);
+            curr=n;
+            
+            // End on punctuation sometimes
+            if(i>min&&Math.random()<0.2)break;
+        }
+        
+        return this.polish(result.join(' '));
+    }
+    
+    // Polish generated text
+    polish(s){
+        if(!s)return "I need more data to generate meaningful responses.";
+        
+        // Capitalize first letter
+        s=s.charAt(0).toUpperCase()+s.slice(1);
+        
+        // Add punctuation if missing
+        if(!/[.!?]$/.test(s))s+='.';
+        
+        return s;
+    }
+    
+    // Find similarish inputs for inspiration
+    similar(i){
+        let w=new Set(this.t(i));
+        let best=null;
+        let score=0;
+        
+        this.D.c.forEach(c=>{
+            let cw=new Set(this.t(c));
+            let common=[...w].filter(x=>cw.has(x)).length;
+            let s=common/(w.size+cw.size-common);
+            if(s>score&&s<0.8){// Not too similar
+                score=s;
+                best=c;
+            }
+        });
+        
+        return best;
+    }
+    
+    // Generate a completely new response
+    generateNew(i){
+        let seeds=this.seeds(i);
+        let parts=[];
+        
+        // Generate 1-3 phrases based on different seeds
+        let phrases=1+Math.floor(Math.random()*2);
+        for(let j=0;j<phrases&&j<seeds.length;j++){
+            let p=this.gen(seeds[j]);
+            if(p)parts.push(p);
+        }
+        
+        // If we couldn't generate anything good, try using similar input
+        if(!parts.length){
+            let sim=this.similar(i);
+            if(sim){
+                let sw=this.t(sim);
+                if(sw.length)parts.push(this.gen(sw[Math.floor(Math.random()*sw.length)]));
+            }
+        }
+        
+        // Last resort fallback
+        if(!parts.length)
+            return "I'm learning from our conversation, but need more data to generate good responses.";
+        
+        return parts.join(' ');
+    }
+    
+    // Process input and generate response
+    r(i){
+        i=i?.trim();
+        if(!i)return "Type something so I can learn from it!";
+        
+        // Skip if identical to the *immediately preceding* input
+        if(this.C.length > 0 && this.C[0] === i)
+            return "You said that already. I learn better from varied inputs.";
+        
+        // Update recent inputs
+        this.C.unshift(i);
+        if(this.C.length>5)this.C.pop();
+        
+        // Handle special commands
+        if(/^reset\s+memory$/i.test(i)){
+            this.M.removeItem('d');
+            this.D={n:{},w:{},c:[],b:{}};
+            return "Memory reset! I'm starting with a clean slate.";
+        }
+        
+        // Learn from this input before responding
+        this.l(i);
+        
+        // Generate a response
+        let response=this.generateNew(i);
+        
+        // Learn from our own response to improve future generation
+        this.l(response);
+        
+        return response;
+    }
+    
+    startup() {
+        return `v14.0 - MarkovGen\n\n<span class=h>${this.logo()}</span>\n\n<span class=c>Generative Markov Model</span>\n\n<span class=s>SYNEVA: Hello! I learn from everything you say and generate unique responses each time.</span>`;
+    }
+}
+
+const n = new SYNEVA();
+o.innerHTML = n.startup();
+i.onkeydown = e => {
+    if(e.key == "Enter" && i.value.trim()) {
+        let v = i.value.trim();
+        o.innerHTML += `\n\n<span class=y>YOU: ${v}</span>\n<span class=s>SYNEVA: ${n.r(v)}</span>`;
+        i.value = "";
+        o.scrollTop = 9e9;
+    }
+}</script></body></html>
