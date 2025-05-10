@@ -40,7 +40,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chatbots" element={<Chatbots />} />
-            <Route path="/chatbots/:type/:version" element={<ChatbotDetail />} />
+            <Route path="/chatbot/:type/:version" element={<ChatbotDetail />} />
             <Route path="/study-materials" element={<StudyMaterials />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaAngleDown, FaExternalLinkAlt, FaInfoCircle, FaCode, FaGithub } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const ChatbotsContainer = styled.div`
   max-width: 1200px;
@@ -201,7 +202,7 @@ const CardContent = styled.div`
   padding: 2rem;
 `;
 
-const LinkButton = styled.a`
+const LinkButton = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
@@ -212,8 +213,6 @@ const LinkButton = styled.a`
   color: var(--text-color);
   font-family: 'Space Mono', monospace;
   transition: all 0.3s ease;
-  margin-top: 1.5rem;
-  font-size: 1rem;
   text-decoration: none;
   
   &:hover {
@@ -288,42 +287,42 @@ const Chatbots = () => {
       name: 'SYNEVA Latest', 
       version: 'Latest', 
       description: 'The latest version of SYNEVA with improved conversational abilities and expanded knowledge.',
-      filePath: '/SYNEVA/SYNEVA.html'
+      filePath: '/MiniLMs/SYNEVA/SYNEVA.html'
     },
     { 
       id: 'v17', 
       name: 'SYNEVA v17', 
       version: 'v17', 
       description: 'Version 17 with enhanced pattern matching and response variety.',
-      filePath: '/SYNEVA/ARCHIVE/v17.html'
+      filePath: '/MiniLMs/SYNEVA/ARCHIVE/v17.html'
     },
     { 
       id: 'v15', 
       name: 'SYNEVA v15', 
       version: 'v15',
       description: 'Version 15 featuring improved dialogue flow and contextual awareness.',
-      filePath: '/SYNEVA/ARCHIVE/v15.html'
+      filePath: '/MiniLMs/SYNEVA/ARCHIVE/v15.html'
     },
     { 
       id: 'v12', 
       name: 'SYNEVA v12', 
       version: 'v12',
       description: 'Version 12 with initial context tracking capabilities.',
-      filePath: '/SYNEVA/ARCHIVE/v12.html'
+      filePath: '/MiniLMs/SYNEVA/ARCHIVE/v12.html'
     },
     { 
       id: 'v10', 
       name: 'SYNEVA v10', 
       version: 'v10',
       description: 'Version 10 featuring expanded response templates.',
-      filePath: '/SYNEVA/ARCHIVE/v10.html'
+      filePath: '/MiniLMs/SYNEVA/ARCHIVE/v10.html'
     },
     { 
       id: 'v5', 
       name: 'SYNEVA v5', 
       version: 'v5',
       description: 'Version 5, one of the early implementations with basic conversational capabilities.',
-      filePath: '/SYNEVA/ARCHIVE/v5.html'
+      filePath: '/MiniLMs/SYNEVA/ARCHIVE/v5.html'
     }
   ];
 
@@ -333,49 +332,49 @@ const Chatbots = () => {
       name: '15ABELLA POC-V2.3', 
       version: 'POC-V2.3',
       description: 'The latest version with optimized pattern matching and improved response generation.',
-      filePath: '/15ABELLA/POC-V2.3.html'
+      filePath: '/MiniLMs/15ABELLA/POC-V2.3.html'
     },
     { 
       id: 'poc-v22', 
       name: '15ABELLA POC-V2.2', 
       version: 'POC-V2.2',
       description: 'Version 2.2 with enhanced response variety and pattern recognition.',
-      filePath: '/15ABELLA/POC-V2.2.html'
+      filePath: '/MiniLMs/15ABELLA/POC-V2.2.html'
     },
     { 
       id: 'poc-v21', 
       name: '15ABELLA POC-V2.1', 
       version: 'POC-V2.1',
       description: 'Version 2.1 featuring improved conversation flow.',
-      filePath: '/15ABELLA/POC-V2.1.html'
+      filePath: '/MiniLMs/15ABELLA/POC-V2.1.html'
     },
     { 
       id: 'poc-v2', 
       name: '15ABELLA POC-v2', 
       version: 'POC-v2',
       description: 'Proof of Concept version 2 with initial pattern matching capabilities.',
-      filePath: '/15ABELLA/POC-v2.html'
+      filePath: '/MiniLMs/15ABELLA/POC-v2.html'
     },
     { 
       id: 'poc', 
       name: '15ABELLA POC', 
       version: 'POC',
       description: 'The original Proof of Concept implementation.',
-      filePath: '/15ABELLA/POC.html'
+      filePath: '/MiniLMs/15ABELLA/POC.html'
     },
     { 
       id: 'v02', 
       name: '15ABELLA v0.2', 
       version: 'v0.2',
       description: 'Version 0.2 with basic conversational abilities.',
-      filePath: '/15ABELLA/v0.2.html'
+      filePath: '/MiniLMs/15ABELLA/v0.2.html'
     },
     { 
       id: 'v01', 
       name: '15ABELLA v0.1', 
       version: 'v0.1',
       description: 'The initial version of 15ABELLA.',
-      filePath: '/15ABELLA/v0.1.html'
+      filePath: '/MiniLMs/15ABELLA/v0.1.html'
     }
   ];
 
@@ -480,9 +479,7 @@ const Chatbots = () => {
                   </VersionInfo>
                   
                   <LinkButton 
-                    href={`${basePath}${selectedSyneva.filePath}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                    to={`/chatbot/syneva/${selectedSyneva.id}`}
                   >
                     <FaExternalLinkAlt /> Open Chatbot
                   </LinkButton>
@@ -560,9 +557,7 @@ const Chatbots = () => {
                   </VersionInfo>
                   
                   <LinkButton 
-                    href={`${basePath}${selectedAbella.filePath}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                    to={`/chatbot/abella/${selectedAbella.id}`}
                   >
                     <FaExternalLinkAlt /> Open Chatbot
                   </LinkButton>
@@ -593,9 +588,7 @@ const Chatbots = () => {
             <p>SYNEVA represents our main chatbot implementation, featuring pattern matching, context awareness, and response generation capabilities. The latest version includes improvements in conversation flow and knowledge base.</p>
             
             <LinkButton 
-              href={`${basePath}/SYNEVA/SYNEVA.html`} 
-              target="_blank" 
-              rel="noopener noreferrer"
+              to="/chatbot/syneva/latest"
             >
               <FaExternalLinkAlt /> Try SYNEVA Latest
             </LinkButton>
@@ -615,9 +608,7 @@ const Chatbots = () => {
             <p>15ABELLA is our ultra-compact chatbot implementation, designed to demonstrate efficient pattern matching in a minimal footprint. The latest POC-V2.3 version includes enhanced response capabilities while maintaining its small size.</p>
             
             <LinkButton 
-              href={`${basePath}/15ABELLA/POC-V2.3.html`} 
-              target="_blank" 
-              rel="noopener noreferrer"
+              to="/chatbot/abella/poc-v23"
             >
               <FaExternalLinkAlt /> Try 15ABELLA POC-V2.3
             </LinkButton>

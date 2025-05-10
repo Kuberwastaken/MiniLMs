@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/MiniLMs/static/css/main.a0396364.css",
+    "main.js": "/MiniLMs/static/js/main.35e68cf6.js",
+    "service-worker.js": "/MiniLMs/service-worker.js",
+    "index.html": "/MiniLMs/index.html",
+    "main.a0396364.css.map": "/MiniLMs/static/css/main.a0396364.css.map",
+    "main.35e68cf6.js.map": "/MiniLMs/static/js/main.35e68cf6.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a0396364.css",
+    "static/js/main.35e68cf6.js"
+  ]
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaArrowLeft, FaInfoCircle, FaFileCode } from 'react-icons/fa';
+import { FaArrowLeft, FaInfoCircle, FaFileCode, FaExpand, FaCompress } from 'react-icons/fa';
 
 const ChatbotDetailContainer = styled.div`
   max-width: 1200px;
@@ -53,13 +53,41 @@ const ChatbotFrame = styled(motion.div)`
   overflow: hidden;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   margin-bottom: 2rem;
+  position: ${props => props.isFullscreen ? 'fixed' : 'relative'};
+  top: ${props => props.isFullscreen ? '0' : 'auto'};
+  left: ${props => props.isFullscreen ? '0' : 'auto'};
+  right: ${props => props.isFullscreen ? '0' : 'auto'};
+  bottom: ${props => props.isFullscreen ? '0' : 'auto'};
+  z-index: ${props => props.isFullscreen ? '9999' : '1'};
+  height: ${props => props.isFullscreen ? '100vh' : 'auto'};
+  border-radius: ${props => props.isFullscreen ? '0' : '10px'};
 `;
 
 const StyledIframe = styled.iframe`
   width: 100%;
-  height: 600px;
+  height: ${props => props.isFullscreen ? '100vh' : '600px'};
   border: none;
-  background-color: white;
+  background-color: #111;
+`;
+
+const FullscreenButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
 `;
 
 const InfoSection = styled.div`
@@ -68,6 +96,7 @@ const InfoSection = styled.div`
   padding: 2rem;
   margin-top: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: ${props => props.isFullscreen ? 'none' : 'block'};
 `;
 
 const LoadingMessage = styled.div`
@@ -85,21 +114,19 @@ const ChatbotDetail = () => {
   const { type, version } = useParams();
   const [chatbotInfo, setChatbotInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   useEffect(() => {
-    // In a real app, this would be an API call
-    // Here we'll simulate loading chatbot data
-    
-    setTimeout(() => {
+    const loadChatbotInfo = async () => {
       let path, title, fileSize, description, features;
       
       if (type === 'syneva') {
         if (version === 'latest') {
-          path = '/SYNEVA/SYNEVA.html';
+          path = '/MiniLMs/SYNEVA/SYNEVA.html';
           title = 'SYNEVA Latest';
           fileSize = '24 KB';
         } else {
-          path = `/SYNEVA/ARCHIVE/v${version}.html`;
+          path = `/MiniLMs/SYNEVA/ARCHIVE/v${version}.html`;
           title = `SYNEVA v${version}`;
           fileSize = `${Math.floor(parseInt(version) * 1.5)} KB`;
         }
@@ -113,31 +140,31 @@ const ChatbotDetail = () => {
         ];
       } else if (type === 'abella') {
         if (version === 'v01') {
-          path = '/15ABELLA/v0.1.html';
+          path = '/MiniLMs/15ABELLA/v0.1.html';
           title = '15ABELLA v0.1';
           fileSize = '8 KB';
         } else if (version === 'v02') {
-          path = '/15ABELLA/v0.2.html';
+          path = '/MiniLMs/15ABELLA/v0.2.html';
           title = '15ABELLA v0.2';
           fileSize = '10 KB';
         } else if (version === 'poc') {
-          path = '/15ABELLA/POC.html';
+          path = '/MiniLMs/15ABELLA/POC.html';
           title = '15ABELLA POC';
           fileSize = '12 KB';
         } else if (version === 'poc-v2') {
-          path = '/15ABELLA/POC-v2.html';
+          path = '/MiniLMs/15ABELLA/POC-v2.html';
           title = '15ABELLA POC-v2';
           fileSize = '13 KB';
         } else if (version === 'poc-v21') {
-          path = '/15ABELLA/POC-V2.1.html';
+          path = '/MiniLMs/15ABELLA/POC-V2.1.html';
           title = '15ABELLA POC-V2.1';
           fileSize = '14 KB';
         } else if (version === 'poc-v22') {
-          path = '/15ABELLA/POC-V2.2.html';
+          path = '/MiniLMs/15ABELLA/POC-V2.2.html';
           title = '15ABELLA POC-V2.2';
           fileSize = '15 KB';
         } else if (version === 'poc-v23') {
-          path = '/15ABELLA/POC-V2.3.html';
+          path = '/MiniLMs/15ABELLA/POC-V2.3.html';
           title = '15ABELLA POC-V2.3';
           fileSize = '16 KB';
         }
@@ -160,26 +187,29 @@ const ChatbotDetail = () => {
       });
       
       setIsLoading(false);
-    }, 800);
+    };
+
+    loadChatbotInfo();
   }, [type, version]);
 
-  // Create the iframe URL relative to the GitHub Pages base path
   const getIframeUrl = () => {
     if (!chatbotInfo?.path) return '';
-    // Remove the leading slash if present
-    const relativePath = chatbotInfo.path.startsWith('/') 
-      ? chatbotInfo.path.substring(1) 
-      : chatbotInfo.path;
-    return `./../../../${relativePath}`;
+    return chatbotInfo.path;
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   return (
     <ChatbotDetailContainer>
-      <Header>
-        <BackButton to="/chatbots">
-          <FaArrowLeft /> Back to Chatbots
-        </BackButton>
-      </Header>
+      {!isFullscreen && (
+        <Header>
+          <BackButton to="/chatbots">
+            <FaArrowLeft /> Back to Chatbots
+          </BackButton>
+        </Header>
+      )}
       
       {isLoading ? (
         <LoadingMessage>
@@ -187,29 +217,38 @@ const ChatbotDetail = () => {
         </LoadingMessage>
       ) : chatbotInfo && (
         <>
-          <Title>{chatbotInfo.title}</Title>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <InfoBadge>
-              <FaInfoCircle /> {chatbotInfo.fileSize}
-            </InfoBadge>
-            <InfoBadge>
-              <FaFileCode /> HTML + JavaScript
-            </InfoBadge>
-          </div>
+          {!isFullscreen && (
+            <>
+              <Title>{chatbotInfo.title}</Title>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <InfoBadge>
+                  <FaInfoCircle /> {chatbotInfo.fileSize}
+                </InfoBadge>
+                <InfoBadge>
+                  <FaFileCode /> HTML + JavaScript
+                </InfoBadge>
+              </div>
+            </>
+          )}
           
           <ChatbotFrame
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            isFullscreen={isFullscreen}
           >
+            <FullscreenButton onClick={toggleFullscreen}>
+              {isFullscreen ? <><FaCompress /> Exit Fullscreen</> : <><FaExpand /> Fullscreen</>}
+            </FullscreenButton>
             <StyledIframe 
               src={getIframeUrl()}
               title={chatbotInfo.title}
               sandbox="allow-scripts allow-same-origin"
+              isFullscreen={isFullscreen}
             />
           </ChatbotFrame>
           
-          <InfoSection>
+          <InfoSection isFullscreen={isFullscreen}>
             <h2>About this Chatbot</h2>
             <p style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
               {chatbotInfo.description}

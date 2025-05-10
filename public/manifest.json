@@ -1,0 +1,37 @@
+{
+  "short_name": "MiniLMs",
+  "name": "MiniLMs Project",
+  "description": "Exploring, studying, and creating small language models for interactive conversations and learning",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#5e35b1",
+  "background_color": "#000000",
+  "orientation": "portrait",
+  "categories": ["education", "artificial intelligence", "development"],
+  "screenshots": [
+    {
+      "src": "images/MiniLMs-Banner.png",
+      "type": "image/png",
+      "sizes": "1200x630"
+    }
+  ]
+}

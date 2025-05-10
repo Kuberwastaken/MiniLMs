@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page Not Found - MiniLMs Project</title>
+  <script>
+    // Single Page App handling for GitHub Pages
+    // This script takes the current URL and redirects to the React router
+    // https://github.com/rafgraph/spa-github-pages
+    (function(l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function(s) { 
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+        );
+      }
+    }(window.location))
+  </script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #000000;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 800px;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #7c4dff, #ff5722);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .error-code {
+      font-size: 8rem;
+      font-weight: bold;
+      opacity: 0.2;
+      margin-bottom: 1rem;
+      font-family: monospace;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .button {
+      display: inline-block;
+      background: #5e35b1;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin: 0.5rem;
+    }
+
+    .button:hover {
+      background: #7c4dff;
+      transform: translateY(-3px);
+    }
+
+    .button.outline {
+      background: transparent;
+      border: 2px solid #5e35b1;
+    }
+
+    .button.outline:hover {
+      background: rgba(94, 53, 177, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-code">404</div>
+    <h1>Page Not Found</h1>
+    <p>
+      The page you are looking for might have been removed, had its name changed,
+      or is temporarily unavailable.
+    </p>
+    <div>
+      <a href="/" class="button">Go Home</a>
+      <a href="/chatbots" class="button outline">Try Chatbots</a>
+      <a href="/study-materials" class="button outline">Study Materials</a>
+    </div>
+  </div>
+  
+  <script>
+    // Auto-redirect to the main app after a short delay
+    setTimeout(function() {
+      window.location.href = '/';
+    }, 5000);
+  </script>
+</body>
+</html>
