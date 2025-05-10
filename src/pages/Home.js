@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { FaRobot, FaBook, FaGithub, FaCode, FaBrain, FaGraduationCap, FaHistory } from 'react-icons/fa';
 
 const HomeContainer = styled.div`
@@ -240,6 +241,10 @@ const item = {
 const Home = () => {
   return (
     <HomeContainer>
+      <Helmet>
+        <title>MiniLMs Project - Home | Explore Minimalist Language Models</title>
+        <meta name="description" content="Welcome to the MiniLMs Project. Discover and interact with minimalist language models, explore study resources, and delve into the world of compact AI." />
+      </Helmet>
       <HeroSection>
         <Title
           initial={{ opacity: 0, y: -30 }}
