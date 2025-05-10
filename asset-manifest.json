@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/MiniLMs/static/css/main.a0396364.css",
-    "main.js": "/MiniLMs/static/js/main.35e68cf6.js",
-    "service-worker.js": "/MiniLMs/service-worker.js",
-    "index.html": "/MiniLMs/index.html",
-    "main.a0396364.css.map": "/MiniLMs/static/css/main.a0396364.css.map",
-    "main.35e68cf6.js.map": "/MiniLMs/static/js/main.35e68cf6.js.map"
+    "main.css": "/static/css/main.a0396364.css",
+    "main.js": "/static/js/main.40cddb30.js",
+    "service-worker.js": "/service-worker.js",
+    "index.html": "/index.html",
+    "main.a0396364.css.map": "/static/css/main.a0396364.css.map",
+    "main.40cddb30.js.map": "/static/js/main.40cddb30.js.map"
   },
   "entrypoints": [
     "static/css/main.a0396364.css",
-    "static/js/main.35e68cf6.js"
+    "static/js/main.40cddb30.js"
   ]
 }
