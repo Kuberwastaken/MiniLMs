@@ -23,27 +23,23 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: docs/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install Dependencies 📦
-        run: |
-          cd docs
-          npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Build React App 🔧
-        run: |
-          cd docs
-          npm run build
+        run: npm run build
         env:
           CI: false
 
       - name: Create .nojekyll file 🚫
-        run: touch docs/build/.nojekyll
+        run: touch build/.nojekyll
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: docs/build
+          folder: build
           branch: gh-pages
           clean: true
           clean-exclude: |
