@@ -33,14 +33,27 @@ jobs:
         env:
           CI: false
 
-      - name: Create .nojekyll file 🚫
-        run: touch build/.nojekyll
+      - name: Prepare deployment directory  Staging 📁
+        run: |
+          mkdir deploy_dist
+          echo "Copying React app build output to deploy_dist/"
+          cp -r build/* deploy_dist/
+          echo "Copying content folders to deploy_dist/"
+          if [ -d "SYNEVA" ]; then cp -r SYNEVA deploy_dist/; else echo "SYNEVA directory not found"; fi
+          if [ -d "15ABELLA" ]; then cp -r 15ABELLA deploy_dist/; else echo "15ABELLA directory not found"; fi
+          if [ -d "MEDIA" ]; then cp -r MEDIA deploy_dist/; else echo "MEDIA directory not found"; fi
+          if [ -d "STUDY-RESOURCES" ]; then cp -r STUDY-RESOURCES deploy_dist/; else echo "STUDY-RESOURCES directory not found"; fi
+          echo "Listing contents of deploy_dist:"
+          ls -R deploy_dist
+
+      - name: Create .nojekyll file in deployment directory 🚫
+        run: touch deploy_dist/.nojekyll
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: build
+          folder: deploy_dist # Deploy the 'deploy_dist' directory
           branch: gh-pages
-          clean: true
+          clean: true # Automatically cleans the target branch before deploying
           clean-exclude: |
             .nojekyll
