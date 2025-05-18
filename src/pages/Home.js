@@ -18,7 +18,13 @@ const HeroSection = styled.section`
   justify-content: center;
   text-align: center;
   margin-bottom: 4rem;
-  min-height: 80vh;
+  min-height: calc(80vh - 72px); /* Account for navbar height */
+  padding-top: 72px; /* Default navbar height */
+
+  @media (max-width: 768px) {
+    min-height: calc(80vh - 56px);
+    padding-top: 56px; /* Mobile navbar height */
+  }
 `;
 
 const Title = styled(motion.h1)`
@@ -30,7 +36,8 @@ const Title = styled(motion.h1)`
   letter-spacing: -1px;
   
   @media (max-width: 768px) {
-    font-size: 3rem;
+    font-size: 2.2rem;
+    margin-bottom: 0.7rem;
   }
 `;
 
@@ -40,6 +47,10 @@ const Subtitle = styled(motion.p)`
   margin-bottom: 3rem;
   line-height: 1.7;
   opacity: 0.8;
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
 `;
 
 const ButtonContainer = styled(motion.div)`
