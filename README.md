@@ -11,7 +11,7 @@
 
 ## 🔍 Overview
 
-MiniLMs is a research project focused on studying and implementing minimalist language model architectures. The project aims to understand fundamental LLM concepts by building small, efficient implementations and documenting the learning journey.
+MiniLMs is a research project focused on studying and implementing minimalist language model architectures. The project aims to understand fundamental LLM concepts by building small, efficient implementations and documenting the learning journey. 
 
 ## 📁 Project Structure
 
